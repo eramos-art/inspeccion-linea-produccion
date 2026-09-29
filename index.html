@@ -497,7 +497,7 @@ async function guardarInspeccion(){
   const inspector=document.getElementById('f_inspector').value.trim();
   const encargado=document.getElementById('f_encargado').value.trim();
   if(!fecha||!codigo||!inspector||!encargado){ toast(esHab?'Agrega al menos un código habilitado, además de fecha, inspector y encargado.':'Completa fecha, código, inspector y encargado.'); return; }
-  if(!db){ toast('Base de datos no disponible en esta vista.'); return; }
+  if(SCRIPT_URL.indexOf('PEGA_AQUI')===0){ toast('Falta configurar SCRIPT_URL en el código.'); return; }
   if(saving) return;
   saving=true; const bg=document.getElementById('btnGuardar'); bg.disabled=true; bg.textContent='Guardando...';
   try{
