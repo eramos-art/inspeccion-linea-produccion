@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grupo Sole · Inspección de Línea de Producción</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#023B5C">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -51,7 +55,7 @@ textarea{resize:vertical;min-height:54px;}
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .thumb{position:relative;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#000;}
-.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;}
+.thumb img,.thumb video,.thumb iframe{width:100%;height:100%;object-fit:cover;border:none;}
 .thumb .x{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:19px;height:19px;font-size:12px;cursor:pointer;line-height:1;}
 canvas{width:100%;height:150px;border:1px dashed var(--line);border-radius:9px;background:#fff;touch-action:none;}
 .save-bar{position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px;display:flex;gap:10px;}
@@ -203,6 +207,7 @@ tr:last-child td{border-bottom:none;}
     <div class="card">
       <h3>⚠️ Defectos / incidencias encontradas</h3>
       <div class="body">
+        <input id="defBuscar" placeholder="🔎 Busca un defecto (ej. visual, accesorios, rayado...)" style="margin-bottom:10px;" oninput="filtrarChips()">
         <div class="row" id="defChips" style="margin-bottom:10px;"></div>
         <div id="defEmpty" class="empty" style="padding:14px 8px;">Sin defectos registrados. Toca un botón de arriba o agrega uno nuevo.</div>
         <div id="defList"></div>
@@ -373,11 +378,23 @@ function onLineaChange(){
     l.innerHTML='<input type="checkbox">'; const i=l.querySelector('input'); i.value=c.nombre; i.checked=marcadas.has(c.nombre);
     l.appendChild(document.createTextNode(c.nombre)); document.getElementById('f_pruebas').appendChild(l);
   });
-  base.forEach(([label,tipo])=>{
+  window._defChipsBase = base;
+  document.getElementById('defBuscar').value='';
+  pintarChips(base);
+}
+function pintarChips(list){
+  const chips=document.getElementById('defChips'); chips.innerHTML='';
+  list.forEach(([label,tipo])=>{
     const b=document.createElement('button'); b.className='chip'; b.type='button'; b.textContent='+ '+label;
     b.onclick=()=>addDefRow(tipo,label,true);
     chips.appendChild(b);
   });
+  if(!list.length){ chips.innerHTML='<span class="hint">Sin sugerencias para tu búsqueda, agrégalo abajo como nuevo.</span>'; }
+}
+function filtrarChips(){
+  const q=document.getElementById('defBuscar').value.trim().toLowerCase();
+  const base=window._defChipsBase||[];
+  pintarChips(q?base.filter(([l])=>l.toLowerCase().includes(q)):base);
 }
 function addInsumoRow(material,pct){
   const row=document.createElement('div'); row.className='defRow';
@@ -450,7 +467,7 @@ document.getElementById('f_media').addEventListener('change', async (e)=>{
     try{
       const b64 = await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(file); });
       const res = await apiPost('uploadFile', {filename:file.name, mimeType:file.type, data:b64});
-      pendingMedia.push({url:res.url, type:file.type, driveId:res.id});
+      pendingMedia.push({url:res.url, thumb:res.thumb, type:file.type, driveId:res.id});
       renderThumbs();
     }catch(err){ toast('Error al subir archivo: '+(err.code||err.message)); }
   }
@@ -460,7 +477,8 @@ function renderThumbs(){
   pendingMedia.forEach((m,i)=>{
     const d=document.createElement('div'); d.className='thumb';
     d.innerHTML = (m.type&&m.type.startsWith('video'))
-      ? `<video src="${m.url}" muted></video>` : `<img src="${m.url}">`;
+      ? `<iframe src="https://drive.google.com/file/d/${m.driveId}/preview" allow="autoplay" style="border:none;"></iframe>`
+      : `<img src="${m.thumb||m.url}" loading="lazy">`;
     const x=document.createElement('button'); x.className='x'; x.textContent='✕';
     x.onclick=()=>{ pendingMedia.splice(i,1); renderThumbs(); };
     d.appendChild(x); c.appendChild(d);
@@ -553,7 +571,7 @@ async function guardarInspeccion(){
     muestra:esHab?codsHab.reduce((a,c)=>a+c.muestra,0):(Number(document.getElementById('f_muestra').value)||0),
     horaInicio:hini, horaFin:hfin, horasHombre:horasHombre(hini,hfin),
     inspector, encargado, pruebas, defectos, detalle,
-    media: pendingMedia.map(m=>({url:m.url,type:m.type})),
+    media: pendingMedia.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),
     firma: firmaId, creadoEn:new Date().toISOString()
   };
   try{
@@ -636,8 +654,8 @@ function detalleHTML(d){
 function verDetalle(id){
   const d=allDocs.find(x=>x.id===id); if(!d) return;
   const media=(d.media||[]).map(m=> m.type&&m.type.startsWith('video')
-    ? `<div class="thumb" style="width:100px;height:100px;"><video src="${m.url}" controls></video></div>`
-    : `<div class="thumb" style="width:100px;height:100px;"><img src="${m.url}"></div>`).join('');
+    ? `<div class="thumb" style="width:140px;height:140px;"><iframe src="https://drive.google.com/file/d/${m.driveId}/preview" allow="autoplay" style="border:none;"></iframe></div>`
+    : `<div class="thumb" style="width:100px;height:100px;"><img src="${m.thumb||m.url}" loading="lazy"></div>`).join('');
   const defs=(d.defectos||[]).map(x=>`<div style="margin-bottom:6px;"><span class="tag ${x.tipo==='Funcional'?'func':'est'}">${x.tipo}</span> ${x.codigo?`<b>${x.codigo}:</b> `:''}${x.descripcion}</div>`).join('') || '<i>Sin defectos registrados</i>';
   document.getElementById('modalBody').innerHTML = `
     <h4>${d.codigo} · ${d.fecha}</h4>
@@ -717,6 +735,7 @@ let toastT;
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200); }
 
 onLineaChange();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body>
 </html>
