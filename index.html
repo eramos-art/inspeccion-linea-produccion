@@ -38,6 +38,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:560px){.grid2{grid-template-columns:1fr;}}
 label{display:block;font-size:11.5px;color:var(--muted);font-weight:700;margin-bottom:4px;}
+input.upper{text-transform:uppercase;}
 input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font-size:13.5px;font-family:inherit;}
 textarea{resize:vertical;min-height:54px;}
 .field{margin-bottom:11px;}
@@ -54,7 +55,7 @@ textarea{resize:vertical;min-height:54px;}
 .btn-outline{background:transparent;color:var(--accent);border:1.5px dashed var(--accent);}
 .row{display:flex;gap:8px;flex-wrap:wrap;}
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.thumb{position:relative;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#000;}
+.thumb{position:relative;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#e4e9ef;display:flex;align-items:center;justify-content:center;}
 .thumb img,.thumb video,.thumb iframe{width:100%;height:100%;object-fit:cover;border:none;}
 .thumb .x{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:19px;height:19px;font-size:12px;cursor:pointer;line-height:1;}
 canvas{width:100%;height:150px;border:1px dashed var(--line);border-radius:9px;background:#fff;touch-action:none;}
@@ -132,14 +133,14 @@ tr:last-child td{border-bottom:none;}
               <option>Habilitación de productos</option>
             </select>
           </div>
-          <div class="field" id="fw_codigo"><label>Código de producto</label><input id="f_codigo" placeholder="Ej. SOLRAP001"></div>
+          <div class="field" id="fw_codigo"><label>Código de producto</label><input id="f_codigo" class="upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div>
           <div class="field" id="fw_lote"><label>Lote de producción</label><input id="f_lote" placeholder="Ej. L-2309"></div>
           <div class="field" id="fw_muestra"><label>Tamaño de muestra</label><input type="number" id="f_muestra" min="0" placeholder="Ej. 12"></div>
           <div class="field"></div>
           <div class="field"><label>Hora de inicio</label><input type="time" id="f_hini"></div>
           <div class="field"><label>Hora de fin</label><input type="time" id="f_hfin"></div>
-          <div class="field"><label>Inspector responsable</label><input id="f_inspector" placeholder="Nombre del inspector"></div>
-          <div class="field"><label>Encargado de línea</label><input id="f_encargado" placeholder="Nombre del encargado"></div>
+          <div class="field"><label>Inspector responsable</label><input id="f_inspector" class="upper" placeholder="Nombre del inspector" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="field"><label>Encargado de línea</label><input id="f_encargado" class="upper" placeholder="Nombre del encargado" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
       </div>
     </div>
@@ -219,7 +220,12 @@ tr:last-child td{border-bottom:none;}
     <div class="card">
       <h3>📷 Evidencia fotográfica y de video</h3>
       <div class="body">
-        <input type="file" id="f_media" accept="image/*,video/*" multiple>
+        <div class="row">
+          <button type="button" class="btn btn-accent" onclick="document.getElementById('f_camara').click()">📷 Tomar foto o video</button>
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('f_galeria').click()">🖼️ Elegir de galería</button>
+        </div>
+        <input type="file" id="f_camara" accept="image/*,video/*" capture="environment" style="display:none;">
+        <input type="file" id="f_galeria" accept="image/*,video/*" multiple style="display:none;">
         <div class="hint">Desde el celular puedes tomar la foto o video directamente con la cámara.</div>
         <div class="thumbs" id="mediaThumbs"></div>
       </div>
@@ -423,7 +429,7 @@ function addCodigoRow(codigo,cant,lote,muestra){
   const row=document.createElement('div'); row.className='defRow defCard cod';
   row.innerHTML=`<div class="defHead"><span class="codNum"></span><button type="button" class="rm" style="margin-left:auto" title="Quitar código">✕</button></div>
     <div class="grid2">
-      <div class="field"><label>Código habilitado</label><input class="codC" placeholder="Ej. SOLRAP001"></div>
+      <div class="field"><label>Código habilitado</label><input class="codC upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div>
       <div class="field"><label>Lote</label><input class="codL" placeholder="Ej. L-2309"></div>
       <div class="field"><label>Cantidad habilitada</label><input class="codQ" type="number" min="0" placeholder="Piezas"></div>
       <div class="field"><label>Tamaño de muestra inspeccionada</label><input class="codM" type="number" min="0" placeholder="Ej. 12"></div>
@@ -474,7 +480,7 @@ function addDefRow(tipo,desc,deLista){
 function defEmpty(){ document.getElementById('defEmpty').style.display = document.querySelector('#defList .defRow')?'none':'block'; }
 
 // ---- Media (fotos/video) ----
-document.getElementById('f_media').addEventListener('change', async (e)=>{
+async function handleMediaFiles(e){
   const files=[...e.target.files];
   e.target.value='';
   for(const file of files){
@@ -485,7 +491,9 @@ document.getElementById('f_media').addEventListener('change', async (e)=>{
       renderThumbs();
     }catch(err){ toast('Error al subir archivo: '+(err.code||err.message)); }
   }
-});
+}
+document.getElementById('f_camara').addEventListener('change', handleMediaFiles);
+document.getElementById('f_galeria').addEventListener('change', handleMediaFiles);
 function renderThumbs(){
   const c=document.getElementById('mediaThumbs'); c.innerHTML='';
   pendingMedia.forEach((m,i)=>{
