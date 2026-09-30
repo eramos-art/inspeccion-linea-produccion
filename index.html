@@ -219,7 +219,7 @@ tr:last-child td{border-bottom:none;}
     <div class="card">
       <h3>📷 Evidencia fotográfica y de video</h3>
       <div class="body">
-        <input type="file" id="f_media" accept="image/*,video/*" capture="environment" multiple>
+        <input type="file" id="f_media" accept="image/*,video/*" multiple>
         <div class="hint">Desde el celular puedes tomar la foto o video directamente con la cámara.</div>
         <div class="thumbs" id="mediaThumbs"></div>
       </div>
@@ -312,14 +312,28 @@ async function apiPost(action, payload){
   return j;
 }
 function parseJ(v,fallback){ try{ return v?JSON.parse(v):fallback; }catch{ return fallback; } }
+function fmtFecha(v){
+  if(!v) return '';
+  const s=String(v);
+  const m=s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if(m) return m[1];
+  const d=new Date(v); return isNaN(d)?s:d.toISOString().slice(0,10);
+}
+function fmtHora(v){
+  if(!v) return '';
+  const s=String(v);
+  const m=s.match(/T(\d{2}):(\d{2})/) || s.match(/^(\d{2}):(\d{2})/);
+  if(m) return m[1]+':'+m[2];
+  const d=new Date(v); return isNaN(d)?s:d.toISOString().slice(11,16);
+}
 
 async function cargarDatos(silencioso){
   if(cargando) return; cargando=true;
   try{
     const j = await apiGet();
     allDocs = (j.inspecciones||[]).map(r=>({
-      id:r.ID, fecha:r.Fecha, linea:r.Linea, codigo:r.Codigo, lote:r.Lote, muestra:Number(r.Muestra)||0,
-      horaInicio:r.HoraInicio, horaFin:r.HoraFin, horasHombre:Number(r.HorasHombre)||0,
+      id:r.ID, fecha:fmtFecha(r.Fecha), linea:r.Linea, codigo:r.Codigo, lote:r.Lote, muestra:Number(r.Muestra)||0,
+      horaInicio:fmtHora(r.HoraInicio), horaFin:fmtHora(r.HoraFin), horasHombre:Number(r.HorasHombre)||0,
       inspector:r.Inspector, encargado:r.Encargado, pruebas:parseJ(r.Pruebas,[]), defectos:parseJ(r.Defectos,[]),
       detalle:parseJ(r.Detalle,null), media:parseJ(r.Fotos,[]), firma:r.Firma||null, creadoEn:r.CreadoEn
     })).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
@@ -560,7 +574,7 @@ async function guardarInspeccion(){
         try{
           const b64=await new Promise(rs=>{ const fr=new FileReader(); fr.onload=()=>rs(fr.result); fr.readAsDataURL(blob); });
           const r=await apiPost('uploadFile',{filename:'firma_'+Date.now()+'.png', mimeType:'image/png', data:b64});
-          res(r.url);
+          res(r.thumb);
         }catch{ res(null); }
       },'image/png');
     });
