@@ -221,10 +221,12 @@ tr:last-child td{border-bottom:none;}
       <h3>📷 Evidencia fotográfica y de video</h3>
       <div class="body">
         <div class="row">
-          <button type="button" class="btn btn-accent" onclick="document.getElementById('f_camara').click()">📷 Tomar foto o video</button>
+          <button type="button" class="btn btn-accent" onclick="document.getElementById('f_foto').click()">📷 Tomar foto</button>
+          <button type="button" class="btn btn-accent" onclick="document.getElementById('f_video').click()">🎥 Grabar video</button>
           <button type="button" class="btn btn-ghost" onclick="document.getElementById('f_galeria').click()">🖼️ Elegir de galería</button>
         </div>
-        <input type="file" id="f_camara" accept="image/*,video/*" capture="environment" style="display:none;">
+        <input type="file" id="f_foto" accept="image/*" capture="environment" style="display:none;">
+        <input type="file" id="f_video" accept="video/*" capture="environment" style="display:none;">
         <input type="file" id="f_galeria" accept="image/*,video/*" multiple style="display:none;">
         <div class="hint">Desde el celular puedes tomar la foto o video directamente con la cámara.</div>
         <div class="thumbs" id="mediaThumbs"></div>
@@ -492,7 +494,8 @@ async function handleMediaFiles(e){
     }catch(err){ toast('Error al subir archivo: '+(err.code||err.message)); }
   }
 }
-document.getElementById('f_camara').addEventListener('change', handleMediaFiles);
+document.getElementById('f_foto').addEventListener('change', handleMediaFiles);
+document.getElementById('f_video').addEventListener('change', handleMediaFiles);
 document.getElementById('f_galeria').addEventListener('change', handleMediaFiles);
 function renderThumbs(){
   const c=document.getElementById('mediaThumbs'); c.innerHTML='';
