@@ -272,7 +272,7 @@ tr:last-child td{border-bottom:none;}
           <button class="btn btn-accent" onclick="renderHistory()">Filtrar</button>
           <button class="btn btn-ghost" onclick="limpiarFiltros()">Limpiar filtros</button>
           <button class="btn btn-ghost" onclick="exportarExcel()">⬇ Exportar a Excel</button>
-          <button class="btn btn-ghost" onclick="informeDiario()">✉ Informe del día por correo</button>
+          <button class="btn btn-ghost" onclick="informeDiario()">✉ Enviar informe (hoy o filtro activo)</button>
           <button class="btn btn-ghost" onclick="cargarDatos()">🔄 Actualizar</button>
         </div>
       </div>
@@ -742,17 +742,21 @@ function exportarExcel(){
 // ---- Informe diario por correo ----
 function informeDiario(){
   const hoy=new Date().toISOString().slice(0,10);
-  const docs=allDocs.filter(d=>d.fecha===hoy);
-  if(!docs.length){ toast('No hay inspecciones registradas hoy.'); return; }
+  const base=filteredDocs(); // respeta código / línea / fechas que el usuario haya filtrado
+  const filtrosActivos = document.getElementById('h_codigo').value.trim() || document.getElementById('h_linea').value || document.getElementById('h_desde').value || document.getElementById('h_hasta').value;
+  const docs = filtrosActivos ? base : base.filter(d=>d.fecha===hoy);
+  if(!docs.length){ toast(filtrosActivos?'No hay inspecciones para ese filtro.':'No hay inspecciones registradas hoy.'); return; }
   let horas=0, inc=0; const porLinea={};
   docs.forEach(d=>{ horas+=d.horasHombre||0; inc+=(d.defectos||[]).length; porLinea[d.linea]=(porLinea[d.linea]||0)+1; });
-  let body=`Informe diario de inspección de línea de producción\nFecha: ${hoy}\n\n`;
-  body+=`Inspecciones realizadas: ${docs.length}\nHoras-hombre totales: ${Math.round(horas*100)/100}\nIncidencias reportadas: ${inc}\n\n`;
+  const rango = filtrosActivos ? `Filtro aplicado (código/línea/fechas)` : `Fecha: ${hoy}`;
+  let body=`Informe de inspección de línea de producción\n${rango}\n\n`;
+  body+=`Inspecciones: ${docs.length}\nHoras-hombre totales: ${Math.round(horas*100)/100}\nIncidencias reportadas: ${inc}\n\n`;
   body+=`Por línea de producción:\n`+Object.entries(porLinea).map(([k,v])=>`- ${k}: ${v}`).join('\n')+`\n\n`;
   body+=`Detalle:\n`+docs.map(d=>`- ${d.codigo} (${d.linea}) | ${d.horaInicio}-${d.horaFin} | Inspector: ${d.inspector} | Incidencias: ${(d.defectos||[]).length}`).join('\n');
-  const mailto=`mailto:?subject=${encodeURIComponent('Informe diario de inspección - '+hoy)}&body=${encodeURIComponent(body)}`;
+  const asunto = filtrosActivos ? 'Informe de inspección (filtrado) - '+hoy : 'Informe diario de inspección - '+hoy;
+  const mailto=`mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(body)}`;
   window.location.href=mailto;
-  toast('Se abrió tu correo con el informe del día listo para enviar.');
+  toast('Se abrió tu correo con el informe listo para enviar.');
 }
 
 // ---- Toast ----
