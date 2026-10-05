@@ -281,7 +281,7 @@ tbody tr:hover{background:rgba(0,140,221,.07);}
     <div class="card"><h3>🧾 Insumos / muestras recibidas</h3><div class="body">
       <div id="rItemsList"></div>
       <button class="btn btn-outline" type="button" onclick="addRecItemRow()">+ Agregar insumo / código</button>
-      <div class="hint">Una tarjeta por código. Si un código llega rechazado en una guía con varios códigos, el dictamen lo avisa automáticamente. En "Insumo / tipo" puedes agregar un tipo nuevo con ➕ y quedará guardado para próximas recepciones.</div>
+      <div class="hint">Una tarjeta por código. En "Insumo / tipo" puedes crear un tipo nuevo con ➕ y quedará guardado para próximas recepciones.</div>
     </div></div>
 
     <div class="card"><h3>🧪 Evaluaciones realizadas</h3><div class="body">
@@ -303,7 +303,7 @@ tbody tr:hover{background:rgba(0,140,221,.07);}
         <span style="font-size:12px;color:var(--muted);font-weight:700;">DICTAMEN DE LA GUÍA:</span>
         <span id="r_dictamen" class="tag" style="background:#e6f5ec;color:var(--ok);font-size:12px;">CONFORME</span>
       </div>
-      <div class="hint" style="margin-bottom:10px;">Si marcas un código como Rechazado, el dictamen pasa a RECHAZADO y se sugiere rechazar la guía completa (los códigos buenos van amarrados a la misma remisión).</div>
+      <div class="hint" style="margin-bottom:10px;">Si marcas un código como Rechazado, el dictamen pasa a RECHAZADO y se sugiere rechazar la guía completa (códigos ligados a la misma remisión).</div>
       <div class="field"><label>Decisión sobre el ingreso</label>
         <select id="r_resultado" onchange="saveDraftRec()">
           <option>Ingreso aprobado — todo conforme</option>
@@ -359,8 +359,9 @@ tbody tr:hover{background:rgba(0,140,221,.07);}
     <div class="card" style="border-left:5px solid var(--accent);">
       <div class="body row" style="align-items:center;">
         <span id="bannerTxt" style="flex:1;font-size:13px;font-weight:600;">📡 Reporte del día pendiente de envío.</span>
-        <button class="btn btn-accent" onclick="enviarReporteHoy()">📧 Enviar reporte ahora</button>
+        <button class="btn btn-accent" onclick="enviarReporteHoy()">📧 Enviar reporte hoy</button>
       </div>
+      <div class="hint" style="padding:0 16px 10px;">Envía automáticamente SOLO las inspecciones y recepciones de la fecha actual, con sus fotos. Sin filtros.</div>
     </div>
 
     <div class="card">
@@ -372,7 +373,7 @@ tbody tr:hover{background:rgba(0,140,221,.07);}
     </div>
 
     <div class="card">
-      <h3>🔎 Filtros</h3>
+      <h3>🔎 Filtros (para historial, Excel e informe formal)</h3>
       <div class="body">
         <div class="filters">
           <div class="field"><label>Código</label><input id="h_codigo" placeholder="Ej. SOLRAP001"></div>
@@ -824,7 +825,7 @@ async function guardarRecepcion(){
     const hini=v('r_hini'),hfin=v('r_hfin');
     const pruebas=[...document.querySelectorAll('#r_pruebas input:checked')].map(c=>c.value);
     const otra=v('r_otra').trim();if(otra&&!pruebas.includes(otra))pruebas.push(otra);
-    const data={fecha,tipoIngreso:v('r_tipo'),proveedor,inspector,oc:v('r_oc').trim(),guia:v('r_guia').trim(),factura:v('r_factura').trim(),ficha:v('r_ficha').trim(),horaInicio:hini,horaFin:hfin,tiempoHoras:horasHombre(hini,hfin),items,dictamen:dictamenDe(items),pruebas,resultado:v('r_resultado'),observaciones:v('r_obs').value.trim(),media:pendingMediaRec.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),creadoEn:new Date().toISOString()};
+    const data={fecha,tipoIngreso:v('r_tipo'),proveedor,inspector,oc:v('r_oc').trim(),guia:v('r_guia').trim(),factura:v('r_factura').trim(),ficha:v('r_ficha').trim(),horaInicio:hini,horaFin:hfin,tiempoHoras:horasHombre(hini,hfin),items,dictamen:dictamenDe(items),pruebas,resultado:v('r_resultado'),observaciones:v('r_obs').trim(),media:pendingMediaRec.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),creadoEn:new Date().toISOString()};
     await apiPost('addRecepcion',{data});
     const obs=v('r_obs').trim();
     if(obs&&document.getElementById('r_obsGuardar').checked){
@@ -1246,12 +1247,18 @@ function estadoInformeHoy(){
 function renderBannerInforme(){
   const el=document.getElementById('bannerTxt');if(!el)return;
   const st=estadoInformeHoy();
+  const hoy=new Date().toISOString().slice(0,10);
+  const nIns=allDocs.filter(d=>d.fecha===hoy).length;
+  const nRec=allRecs.filter(r=>r.fecha===hoy).length;
   if(st.enviado){el.textContent='✅ Reporte del día ENVIADO a las '+st.env.enviadoEn+' — Inspecciones: '+st.env.insp+' · Recepciones: '+st.env.rec;el.style.color='var(--ok)';}
-  else if(st.tarde){el.textContent='⚠️ ATENCIÓN: El reporte del día AÚN NO SE HA ENVIADO. Es obligatorio antes de cerrar la jornada.';el.style.color='var(--bad)';}
-  else{el.textContent='📡 Reporte del día pendiente de envío. Puedes enviarlo cuando termines la jornada.';el.style.color='var(--muted)';}
+  else if(st.tarde){el.textContent='⚠️ ATENCIÓN: El reporte de HOY ('+nIns+' inspecciones, '+nRec+' recepciones) AÚN NO SE HA ENVIADO.';el.style.color='var(--bad)';}
+  else{el.textContent='📡 Hoy: '+nIns+' inspecciones y '+nRec+' recepciones listas para el reporte.';el.style.color='var(--muted)';}
 }
 async function enviarReporteHoy(){
-  const to=prompt('📧 ¿A qué correo enviar el reporte del día?\n(Puedes poner varios separados por coma)\n\nSi dejas vacío, se envía al correo configurado por defecto.','');
+  const hoy=new Date().toISOString().slice(0,10);
+  const nIns=allDocs.filter(d=>d.fecha===hoy).length;
+  const nRec=allRecs.filter(r=>r.fecha===hoy).length;
+  const to=prompt('📧 REPORTE DE HOY ('+hoy+')\n\nSe enviarán automáticamente:\n• '+nIns+' inspección(es) de línea\n• '+nRec+' recepción(es) de proveedores\n• Con sus fotos incluidas\n\n¿A qué correo enviar?\n(Varios separados por coma. Vacío = correo por defecto)','');
   if(to===null)return;
   try{
     toast('📤 Enviando reporte del día...');
