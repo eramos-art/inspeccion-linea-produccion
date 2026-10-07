@@ -188,6 +188,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <input type="file" id="f_foto" accept="image/*" capture="environment" style="display:none;">
 <input type="file" id="f_video" accept="video/*" capture="environment" style="display:none;">
 <input type="file" id="f_galeria" accept="image/*,video/*" multiple style="display:none;">
+<div class="hint">Las fotos se optimizan automáticamente antes de enviarse (suben rápido y sin errores).</div>
 <div class="thumbs" id="mediaThumbs"></div>
 </div></div>
 <div class="card"><h3>✍️ Firma del encargado</h3><div class="body">
@@ -261,17 +262,22 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <button type="button" class="btn btn-accent" onclick="document.getElementById('r_video').click()">🎥 Video</button>
 <button type="button" class="btn btn-ghost" onclick="document.getElementById('r_galeria').click()">🖼️ Galería</button>
 </div>
+<div class="hint">Las fotos se optimizan automáticamente antes de enviarse.</div>
 <input type="file" id="r_foto" accept="image/*" capture="environment" style="display:none;">
 <input type="file" id="r_video" accept="video/*" capture="environment" style="display:none;">
 <input type="file" id="r_galeria" accept="image/*,video/*" multiple style="display:none;">
 <div class="thumbs" id="recThumbs"></div>
 </div></div>
-<div class="card"><h3>📋 Recepciones registradas</h3><div class="body" style="overflow:auto;">
-<div class="filters" style="margin-bottom:10px;">
-<div class="field"><label>Proveedor</label><input id="r_f_proveedor" oninput="renderRecepciones()"></div>
+<div class="card"><h3>🔎 Filtros de recepciones</h3><div class="body">
+<div class="filters">
+<div class="field"><label>Proveedor</label><input id="r_f_proveedor" placeholder="Buscar proveedor..." oninput="renderRecepciones()"></div>
+<div class="field"><label>Dictamen</label><select id="r_f_dictamen" onchange="renderRecepciones()"><option value="">Todos</option><option>CONFORME</option><option>OBSERVADO</option><option>RECHAZADO</option></select></div>
 <div class="field"><label>Desde</label><input type="date" id="r_f_desde" onchange="renderRecepciones()"></div>
 <div class="field"><label>Hasta</label><input type="date" id="r_f_hasta" onchange="renderRecepciones()"></div>
 </div>
+<div class="row" style="margin-top:10px;"><button class="btn btn-ghost" onclick="limpiarFiltrosRec()">🧹 Limpiar filtros</button></div>
+</div></div>
+<div class="card"><h3>📋 Recepciones registradas</h3><div class="body" style="overflow:auto;">
 <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>OC / Guía</th><th>Dictamen</th><th></th></tr></thead><tbody id="recBody"></tbody></table>
 <div id="recEmpty" class="empty">Aún no hay recepciones registradas.</div>
 </div></div>
@@ -449,13 +455,33 @@ defEmpty();
 if(!deLista)row.querySelector('.defDesc').focus();
 }
 function defEmpty(){document.getElementById('defEmpty').style.display=document.querySelector('#defList .defRow')?'none':'block';}
+async function leerArchivo(file){
+return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(new Error('No se pudo leer el archivo'));fr.readAsDataURL(file);});
+}
+async function comprimirImagen(file){
+if(!file.type||file.type.indexOf('image')!==0)return null;
+try{
+const dataUrl=await leerArchivo(file);
+const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('formato no soportado'));i.src=dataUrl;});
+const MAX=1600;
+let w=img.width,h=img.height;
+if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+const cx=cv.getContext('2d');cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);cx.drawImage(img,0,0,w,h);
+return{dataUrl:cv.toDataURL('image/jpeg',0.82),mime:'image/jpeg',name:(file.name||'foto_'+Date.now()).replace(/\.[^.]*$/,'')+'.jpg'};
+}catch(e){return null;}
+}
 async function handleMediaFiles(e){
 const files=[...e.target.files];e.target.value='';
 for(const file of files){
+if(file.size>40000000){toast('Archivo de '+Math.round(file.size/1048576)+' MB es demasiado grande. Usa videos de menos de 40 MB.');continue;}
 try{
-const b64=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(file);});
-const res=await apiPost('uploadFile',{filename:file.name,mimeType:file.type,data:b64});
-pendingMedia.push({url:res.url,thumb:res.thumb,type:file.type,driveId:res.id});
+const c=await comprimirImagen(file);
+let payload;
+if(c){payload={filename:c.name,mimeType:c.mime,data:c.dataUrl};}
+else{payload={filename:file.name,mimeType:file.type||'video/mp4',data:await leerArchivo(file)};}
+const res=await apiPost('uploadFile',payload);
+pendingMedia.push({url:res.url,thumb:res.thumb,type:payload.mimeType,driveId:res.id});
 renderThumbs();
 }catch(err){toast('Error al subir archivo: '+err.message);}
 }
@@ -668,10 +694,14 @@ d.appendChild(x);c.appendChild(d);
 async function handleMediaRec(e){
 const files=[...e.target.files];e.target.value='';
 for(const file of files){
+if(file.size>40000000){toast('Archivo de '+Math.round(file.size/1048576)+' MB es demasiado grande. Usa videos de menos de 40 MB.');continue;}
 try{
-const b64=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(file);});
-const res=await apiPost('uploadFile',{filename:file.name,mimeType:file.type,data:b64});
-pendingMediaRec.push({url:res.url,thumb:res.thumb,type:file.type,driveId:res.id});
+const c=await comprimirImagen(file);
+let payload;
+if(c){payload={filename:c.name,mimeType:c.mime,data:c.dataUrl};}
+else{payload={filename:file.name,mimeType:file.type||'video/mp4',data:await leerArchivo(file)};}
+const res=await apiPost('uploadFile',payload);
+pendingMediaRec.push({url:res.url,thumb:res.thumb,type:payload.mimeType,driveId:res.id});
 renderRecThumbs();saveDraftRec();
 }catch(err){toast('Error al subir archivo: '+err.message);}
 }
@@ -795,13 +825,16 @@ c.appendChild(b);});
 function filteredRecs(){
 const p=document.getElementById('r_f_proveedor').value.trim().toLowerCase();
 const d=document.getElementById('r_f_desde').value,h=document.getElementById('r_f_hasta').value;
+const dic=document.getElementById('r_f_dictamen').value;
 return allRecs.filter(r=>{
 if(p&&!(r.proveedor||'').toLowerCase().includes(p))return false;
 if(d&&r.fecha<d)return false;
 if(h&&r.fecha>h)return false;
+if(dic&&r.dictamen!==dic)return false;
 return true;
 });
 }
+function limpiarFiltrosRec(){['r_f_proveedor','r_f_desde','r_f_hasta','r_f_dictamen'].forEach(id=>document.getElementById(id).value='');renderRecepciones();}
 function renderRecepciones(){
 const tb=document.getElementById('recBody');if(!tb)return;
 const recs=filteredRecs();tb.innerHTML='';
