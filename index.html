@@ -46,6 +46,7 @@ textarea{resize:vertical;min-height:54px}.field{margin-bottom:11px}
 .btn-accent{background:var(--accent);color:#fff}.btn-ghost{background:var(--bg);color:var(--navy);border:1px solid var(--line)}
 :root[data-theme="dark"] .btn-ghost{color:#6bc2f2}
 .btn-outline{background:transparent;color:var(--accent);border:1.5px dashed var(--accent)}
+.btn-sm{padding:7px 12px;font-size:12px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .thumb{position:relative;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#e4e9ef}
@@ -108,9 +109,6 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 .secTitle{font-size:12px;font-weight:800;color:var(--navy);margin:14px 0 8px;border-bottom:2px solid var(--navy);padding-bottom:4px}
 .chartBox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.inlineAdd{display:flex;gap:6px}
-.inlineAdd input{flex:1}
-.inlineAdd .btn{padding:9px 14px}
 .panelGrid{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
 @media(max-width:560px){.panelGrid{grid-template-columns:1fr}}
 #chRing{max-width:200px;margin:0 auto}
@@ -121,6 +119,14 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 .semCard b{display:block;font-size:12.5px;margin-bottom:2px}
 .defChipsTop{display:flex;flex-wrap:wrap;gap:6px}
 .defChipsTop span{border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;border:1px solid}
+.mgrChips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.mgrChip{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700}
+.mgrChip.fx{border-color:var(--line);color:var(--muted);background:var(--card)}
+.mgrX{cursor:pointer;font-weight:800;padding:0 2px}
+.mgrX:hover{color:var(--bad)}
+.inlineAdd{display:flex;gap:6px}
+.inlineAdd input{flex:1}
+.inlineAdd .btn{padding:9px 14px}
 </style>
 </head>
 <body>
@@ -145,7 +151,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="hint" id="draftInfo" style="text-align:center;margin:0 0 12px;">📝 Guardado automático activo: nunca pierdes lo que escribes</div>
 <div class="card"><h3>👤 Datos generales</h3><div class="body"><div class="grid2">
 <div class="field"><label>Fecha</label><input type="date" id="f_fecha"></div>
-<div class="field"><label>Línea de producción</label><select id="f_linea" onchange="onLineaChange()"><option>Prensado de tubos de abasto</option><option>Anillos de cera</option><option>Habilitación de productos</option></select></div>
+<div class="field"><label>Línea de producción</label><select id="f_linea" onchange="onLineaSelChange()"><option>Prensado de tubos de abasto</option><option>Anillos de cera</option><option>Habilitación de productos</option><option value="__MGR__">⚙️ Gestionar lista...</option></select></div>
 <div class="field" id="fw_codigo"><label>Código de producto</label><input id="f_codigo" class="upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div>
 <div class="field" id="fw_lote"><label>Lote de producción</label><input id="f_lote" placeholder="Ej. L-2309"></div>
 <div class="field" id="fw_muestra"><label>Tamaño de muestra</label><input type="number" id="f_muestra" min="0" placeholder="Ej. 12"></div>
@@ -166,12 +172,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <label class="chk"><input type="checkbox" value="Limpieza y pulido">Verificación de limpieza y pulido</label>
 <label class="chk"><input type="checkbox" value="Identificación y embalaje">Identificación y embalaje</label>
 </div>
-<div class="field" style="margin-top:12px;background:var(--bg);border:1px dashed var(--accent);border-radius:10px;padding:10px;">
-<label style="color:var(--navy);">⚡ Prueba nueva — escribe y toca ➕ (aparece marcada al instante y queda guardada para siempre)</label>
-<div class="inlineAdd">
-<input id="f_otraPrueba" placeholder="Especificar..." onkeydown="if(event.key==='Enter'){event.preventDefault();addPruebaExtra();}">
-<button class="btn btn-accent" type="button" onclick="addPruebaExtra()">➕</button>
-</div></div>
+<div class="row" style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="openManagePruebas()">⚙️ Gestionar lista de pruebas</button><span class="hint" style="margin:4px 0 0;">Agrega o quita pruebas de esta línea — quedan guardadas</span></div>
 </div></div>
 <div class="card"><h3>🧾 Datos específicos de la prueba</h3><div class="body">
 <div id="det-cera" style="display:none;">
@@ -199,20 +200,16 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 </div>
 </div>
 <div id="det-habilitacion" style="display:none;">
-<div class="hint" style="margin-bottom:8px;">Marca el <b>Estado</b> de cada código y, si sale mal, pega su evidencia directamente en su tarjeta. Toca una tarjeta para expandirla o cerrarla.</div>
+<div class="hint" style="margin-bottom:8px;">Marca el <b>Estado</b> de cada código y pega su evidencia en su tarjeta si sale mal. Toca una tarjeta para expandirla o cerrarla.</div>
 <div id="codigosList"></div>
 <button class="btn btn-outline" type="button" onclick="addCodigoRow()">+ Agregar código</button>
 </div>
 </div></div>
 <div class="card"><h3>⚠️ Defectos / incidencias encontradas</h3><div class="body">
-<div class="field" style="background:var(--bg);border:1px dashed var(--accent);border-radius:10px;padding:10px;">
-<label style="color:var(--navy);">⚡ Defecto rápido — escribe, elige tipo y toca ➕ (queda en tu lista al instante)</label>
-<div class="inlineAdd" style="flex-wrap:wrap;">
-<input id="defQuickDesc" placeholder="Ej. Producto con suciedad en pre-habilitado..." style="flex:1;min-width:170px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addQuickDefecto();}">
-<select id="defQuickTipo" style="width:auto;"><option>Funcional</option><option>Estético</option></select>
-<button class="btn btn-accent" type="button" onclick="addQuickDefecto()">➕</button>
-</div></div>
-<input id="defBuscar" placeholder="🔎 Busca un defecto..." style="margin-bottom:10px;" oninput="filtrarChips()">
+<div class="row" style="margin-bottom:10px;align-items:center;">
+<input id="defBuscar" placeholder="🔎 Busca un defecto..." style="flex:1;" oninput="filtrarChips()">
+<button class="btn btn-ghost btn-sm" onclick="openManageDefectos()">⚙️ Gestionar lista</button>
+</div>
 <div class="row" id="defChips" style="margin-bottom:10px;"></div>
 <div id="defEmpty" class="empty" style="padding:14px 8px;">Sin defectos registrados.</div>
 <div id="defList"></div>
@@ -264,10 +261,10 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="field"><label>Hora de fin</label><input type="time" id="r_hfin"></div>
 </div></div></div>
 <div class="card"><h3>🧾 Insumos / muestras recibidas</h3><div class="body">
-<div class="hint" style="margin-bottom:8px;">La primera tarjeta queda abierta; las siguientes se agregan como <b>resumen compacto</b> — toca una para expandirla.</div>
+<div class="hint" style="margin-bottom:8px;">La primera tarjeta queda abierta; las siguientes se agregan como <b>resumen compacto</b> — toca una para expandirla. En "Insumo / tipo" usa "⚙️ Gestionar lista..." para crear tipos nuevos.</div>
 <div id="rItemsList"></div>
 <button class="btn btn-outline" type="button" onclick="addRecItemRow()">+ Agregar insumo / código</button>
-<div class="hint">En "Insumo / tipo" puedes crear un tipo nuevo con ➕ y queda guardado. Si un código llega rechazado, el dictamen lo avisa automáticamente.</div>
+<div class="hint">Si un código llega rechazado, el dictamen lo avisa automáticamente.</div>
 </div></div>
 <div class="card"><h3>🧪 Evaluaciones realizadas</h3><div class="body">
 <div class="checks" id="r_pruebas">
@@ -280,12 +277,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <label class="chk"><input type="checkbox" value="Verificación según ficha técnica">Según ficha técnica</label>
 <label class="chk"><input type="checkbox" value="Embalaje y etiquetado">Embalaje y etiquetado</label>
 </div>
-<div class="field" style="margin-top:12px;background:var(--bg);border:1px dashed var(--accent);border-radius:10px;padding:10px;">
-<label style="color:var(--navy);">⚡ Evaluación nueva — escribe y toca ➕ (queda guardada para siempre)</label>
-<div class="inlineAdd">
-<input id="r_otra" placeholder="Especificar..." onkeydown="if(event.key==='Enter'){event.preventDefault();addEvalExtra();}">
-<button class="btn btn-accent" type="button" onclick="addEvalExtra()">➕</button>
-</div></div>
+<div class="row" style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="openManageEval()">⚙️ Gestionar lista de evaluaciones</button><span class="hint" style="margin:4px 0 0;">Quedan guardadas para próximas recepciones</span></div>
 </div></div>
 <div class="card"><h3>⚖️ Dictamen y decisión</h3><div class="body">
 <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:8px;">
@@ -355,7 +347,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="semGrid" id="semLineas"></div>
 </div>
 <div class="hint" style="text-align:center;margin:0;" id="ringSub"></div>
-<div class="chartBox"><canvas id="chDias"></canvas><div class="legend"><span><i style="background:#008CDD"></i>Inspecciones por día</span><span><i style="background:#c0392b"></i>Incidencias del día · toca una barra para ver cifras exactas</span></div></div>
+<div class="chartBox"><canvas id="chDias"></canvas><div class="legend"><span><i style="background:#008CDD"></i>Inspecciones por día</span><span><i style="background:#c0392b"></i>Incidencias del día</span></div></div>
 <div><div class="secTitle">🔝 Defectos más repetidos</div><div class="defChipsTop" id="topDef"></div></div>
 <div><div class="secTitle">⚠️ Hallazgos del período (inspector · qué encontró)</div><div id="hallazgos"></div></div>
 </div></div>
@@ -405,7 +397,12 @@ let _tt;function toast(m){const t=document.getElementById('toast');t.textContent
 function openModal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modalBg').classList.add('show');}
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Observado'))return'OBSERVADO';return'CONFORME';}
-function kpiCodigos(list){let tot=0,conf=0;const docs=list||[];docs.forEach(d=>{const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){cs.forEach(c=>{tot++;const e=c.estado||'Conforme';if(e==='Conforme')conf++;});}else{tot++;const nd=(d.defectos||[]).length;if(!nd)conf++;else if(!((d.defectos||[]).some(x=>x.tipo==='Funcional'))&&false)conf++;}});return{tot:tot,conf:conf};}
+const REM_KEY='sole_cat_removed_v1';
+function getRemoved(){try{return new Set(JSON.parse(localStorage.getItem(REM_KEY)||'[]'));}catch(e){return new Set();}}
+function markRemoved(k){const s=getRemoved();s.add(k);localStorage.setItem(REM_KEY,JSON.stringify([...s]));}
+function catKey(t,l,n){return(t+'|'+(l||'')+'|'+n).toLowerCase();}
+function activeCatalogo(){const rm=getRemoved();return catalogo.filter(c=>c.nombre&&!rm.has(catKey(c.tipo,c.linea,c.nombre)));}
+function kpiCodigos(list){let tot=0,conf=0;(list||[]).forEach(d=>{const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){cs.forEach(c=>{tot++;if((c.estado||'Conforme')==='Conforme')conf++;});}else{tot++;if(!(d.defectos||[]).length)conf++;}});return{tot:tot,conf:conf};}
 function docWorst(d){const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){if(cs.some(c=>c.estado==='Rechazado'))return'Rechazado';if(cs.some(c=>c.estado==='Observado'))return'Observado';return'Conforme';}const df=d.defectos||[];if(df.some(x=>x.tipo==='Funcional'))return'Rechazado';if(df.length)return'Observado';return'Conforme';}
 async function cargarDatos(silencioso){
 if(cargando)return;cargando=true;
@@ -416,7 +413,7 @@ catalogo=(j.catalogo||[]).map(r=>({tipo:r.Tipo,linea:r.Linea,nombre:r.Nombre,def
 allRecs=(j.recepciones||[]).map(r=>({id:r.ID,fecha:fmtFecha(r.Fecha),tipoIngreso:r.TipoIngreso,proveedor:r.Proveedor,inspector:r.Inspector,oc:r.OC,guia:r.Guia,factura:r.Factura,ficha:r.Ficha,horaInicio:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),tiempoHoras:Number(r.TiempoHoras)||0,items:parseJ(r.Items,[]),pruebas:parseJ(r.Pruebas,[]),resultado:r.Resultado,dictamen:dictamenDe(parseJ(r.Items,[])),observaciones:r.Observaciones||'',media:parseJ(r.Media,[])})).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
 allEnvios=(j.envios||[]).map(e=>({fecha:fmtFecha(e.Fecha),enviadoEn:fmtHora(e.EnviadoEn),insp:Number(e.Inspecciones)||0,rec:Number(e.Recepciones)||0,inc:Number(e.Incidencias)||0}));
 document.getElementById('histEmpty').style.display='none';
-renderHistory();renderRecepciones();onLineaChange();renderBannerInforme();pintarObsChips();renderEvalExtras();
+fillLineaOptions();renderHistory();renderRecepciones();onLineaChange();renderBannerInforme();pintarObsChips();renderEvalExtras();
 document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));
 }catch(err){
 if(!silencioso)toast('No se pudo conectar: '+err.message);
@@ -426,6 +423,7 @@ const he=document.getElementById('histEmpty');he.style.display='block';he.textCo
 async function boot(){
 document.getElementById('f_fecha').value=new Date().toISOString().slice(0,10);
 document.getElementById('r_fecha').value=new Date().toISOString().slice(0,10);
+window._lastLinea=document.getElementById('f_linea').value;
 restoreDraft();restoreDraftRec();
 if(draftHasContent(DRAFT_KEY)){const d=parseJ(localStorage.getItem(DRAFT_KEY),null);if(d&&d.savedAt)document.getElementById('draftWhenN').textContent=' (guardado a las '+d.savedAt+')';document.getElementById('draftBarN').style.display='block';}
 if(draftHasContent(DRAFT_REC_KEY)){const d=parseJ(localStorage.getItem(DRAFT_REC_KEY),null);if(d&&d.savedAt)document.getElementById('draftWhenR').textContent=' (guardado a las '+d.savedAt+')';document.getElementById('draftBarR').style.display='block';}
@@ -456,6 +454,22 @@ const DEF_CHIPS={
 'Prensado de tubos de abasto':[['Fuga en el prensado','Funcional'],['Rosca dañada','Funcional'],['Tubo doblado','Estético'],['Medida fuera de tolerancia','Funcional']],
 'Habilitación de productos':[['Accesorios incompletos','Funcional'],['Accesorios faltantes','Funcional'],['Accesorios sobrantes','Funcional'],['Accesorios rayados','Estético'],['Manchados','Estético'],['Error de habilitación','Funcional']]
 };
+const LINEAS_FIJAS=['Prensado de tubos de abasto','Anillos de cera','Habilitación de productos'];
+function fillLineaOptions(){
+const cur=document.getElementById('f_linea').value;
+const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>c.nombre);
+const sel=document.getElementById('f_linea');
+sel.innerHTML=LINEAS_FIJAS.concat(din).map(l=>'<option>'+esc(l)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
+sel.value=[...sel.options].some(o=>o.value===cur||o.text===cur)&&cur!=='__MGR__'?cur:LINEAS_FIJAS[0];
+const hf=document.getElementById('h_linea'),hcur=hf.value;
+hf.innerHTML='<option value="">Todas</option>'+LINEAS_FIJAS.concat(din).map(l=>'<option>'+esc(l)+'</option>').join('');
+if(hcur)hf.value=hcur;
+}
+function onLineaSelChange(){
+const sel=document.getElementById('f_linea');
+if(sel.value==='__MGR__'){sel.value=window._lastLinea||LINEAS_FIJAS[0];openManageLineas();return;}
+window._lastLinea=sel.value;onLineaChange();
+}
 function onLineaChange(){
 const lin=document.getElementById('f_linea').value;
 document.getElementById('det-cera').style.display=lin==='Anillos de cera'?'block':'none';
@@ -465,11 +479,11 @@ const hab=lin==='Habilitación de productos';
 ['fw_codigo','fw_lote','fw_muestra'].forEach(id=>document.getElementById(id).style.display=hab?'none':'block');
 if(hab&&!document.querySelector('#codigosList .defRow'))addCodigoRow();
 const base=(DEF_CHIPS[lin]||[]).slice(),low=x=>x.toLowerCase();
-catalogo.filter(c=>c.tipo==='defecto'&&c.linea===lin&&!base.some(b=>low(b[0])===low(c.nombre))).forEach(c=>base.push([c.nombre,c.defTipo||'Funcional']));
+activeCatalogo().filter(c=>c.tipo==='defecto'&&c.linea===lin&&!base.some(b=>low(b[0])===low(c.nombre))).forEach(c=>base.push([c.nombre,c.defTipo||'Funcional']));
 const marcadas=new Set([...document.querySelectorAll('#f_pruebas input:checked')].map(i=>i.value));
 document.querySelectorAll('#f_pruebas .extra').forEach(e=>e.remove());
 const fijas=[...document.querySelectorAll('#f_pruebas input')].map(i=>low(i.value));
-catalogo.filter(c=>c.tipo==='prueba'&&c.linea===lin&&!fijas.includes(low(c.nombre))).forEach(c=>{
+activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea===lin&&!fijas.includes(low(c.nombre))).forEach(c=>{
 const l=document.createElement('label');l.className='chk extra';
 l.innerHTML='<input type="checkbox">';const i=l.querySelector('input');i.value=c.nombre;i.checked=marcadas.has(c.nombre);
 l.appendChild(document.createTextNode(c.nombre));document.getElementById('f_pruebas').appendChild(l);
@@ -482,42 +496,14 @@ function pintarChips(list){
 const chips=document.getElementById('defChips');chips.innerHTML='';
 list.forEach(([label,tipo])=>{const b=document.createElement('button');b.className='chip';b.type='button';b.textContent='+ '+label;b.onclick=()=>addDefRow(tipo,label,true);chips.appendChild(b);});
 const nb=document.createElement('button');nb.className='chip new';nb.type='button';nb.textContent='➕ Nuevo defecto...';
-nb.onclick=()=>{document.getElementById('defQuickDesc').focus();document.getElementById('defQuickDesc').scrollIntoView({behavior:'smooth',block:'center'});toast('Escribe el nombre y toca ➕ — quedará en tu lista');};
+nb.onclick=()=>openManageDefectos();
 chips.appendChild(nb);
-if(!list.length)chips.innerHTML='<span class="hint">Sin sugerencias, agrégalo abajo.</span>';
+if(!list.length)chips.insertBefore(nb,chips.firstChild);
 }
 function filtrarChips(){
 const q=document.getElementById('defBuscar').value.trim().toLowerCase();
 const base=window._defChipsBase||[];
 pintarChips(q?base.filter(([l])=>l.toLowerCase().includes(q)):base);
-}
-async function addPruebaExtra(){
-const inp=document.getElementById('f_otraPrueba');const n=inp.value.trim();
-if(!n){toast('Escribe el nombre de la prueba primero.');return;}
-ensureChkValue(document.getElementById('f_pruebas'),n,true,'extra');
-inp.value='';
-const lin=document.getElementById('f_linea').value;
-try{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:n,linea:lin}});catalogo.push({tipo:'prueba',linea:lin,nombre:n});toast('✓ Agregada y guardada para próximas inspecciones');}
-catch(e){toast('Agregada a esta inspección ✓ (sin conexión, no se guardó en la lista)');}
-saveDraft();
-}
-async function addEvalExtra(){
-const inp=document.getElementById('r_otra');const n=inp.value.trim();
-if(!n){toast('Escribe el nombre de la evaluación primero.');return;}
-ensureChkValue(document.getElementById('r_pruebas'),n,true,'rextra');
-inp.value='';
-try{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:n,linea:'recepcion'}});catalogo.push({tipo:'prueba',linea:'recepcion',nombre:n});toast('✓ Agregada y guardada para próximas recepciones');}
-catch(e){toast('Agregada a esta recepción ✓');}
-saveDraftRec();
-}
-function renderEvalExtras(){
-const cont=document.getElementById('r_pruebas');if(!cont)return;
-cont.querySelectorAll('.rextra').forEach(e=>e.remove());
-const low=x=>x.toLowerCase();
-catalogo.filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').forEach(c=>{
-if(![...cont.querySelectorAll('input')].some(i=>low(i.value)===low(c.nombre))){
-ensureChkValue(cont,c.nombre,false,'rextra');
-}});
 }
 function ensureChkValue(container,val,checked,cls){
 if(!container)return null;
@@ -529,15 +515,100 @@ const i=document.createElement('input');i.type='checkbox';i.value=val;i.checked=
 l.appendChild(i);l.appendChild(document.createTextNode(val));container.appendChild(l);
 return i;
 }
-async function addQuickDefecto(){
-const d=document.getElementById('defQuickDesc'),t=document.getElementById('defQuickTipo');
-const n=d.value.trim();if(!n){toast('Escribe la descripción del defecto.');return;}
-addDefRow(t.value,n,false);d.value='';
-const lin=document.getElementById('f_linea').value;
-try{await apiPost('addCatalog',{data:{tipo:'defecto',nombre:n,linea:lin,defTipo:t.value}});catalogo.push({tipo:'defecto',linea:lin,nombre:n,defTipo:t.value});toast('✓ Defecto agregado y guardado en tu lista');}
-catch(e){toast('Defecto agregado a esta inspección ✓');}
-saveDraft();
+function renderEvalExtras(){
+const cont=document.getElementById('r_pruebas');if(!cont)return;
+cont.querySelectorAll('.rextra').forEach(e=>e.remove());
+const low=x=>x.toLowerCase();
+activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').forEach(c=>{
+if(![...cont.querySelectorAll('input')].some(i=>low(i.value)===low(c.nombre)))ensureChkValue(cont,c.nombre,false,'rextra');
+});
 }
+/* ============ GESTOR GENÉRICO DE LISTAS (estilo Reprocesos) ============ */
+function openManagerModal(cfg){
+window._mgr=cfg;renderMgr();
+}
+function renderMgr(){
+const cfg=window._mgr;
+let h='<h4>⚙️ '+esc(cfg.title)+'</h4>';
+if(cfg.subtitle)h+='<p class="hint" style="margin:0 0 10px;">'+esc(cfg.subtitle)+'</p>';
+h+='<div class="mgrChips">';
+cfg.items.forEach((it,i)=>{h+='<span class="mgrChip'+(it.fixed?' fx':'')+'">'+esc(it.label)+(it.fixed?'':' <span class="mgrX" data-i="'+i+'">✕</span>')+'</span>';});
+if(!cfg.items.length)h+='<span class="hint">Lista vacía — agrega el primero abajo.</span>';
+h+='</div>';
+h+='<div class="inlineAdd" style="margin-top:12px;">';
+if(cfg.extraField)h+='<select id="mgrExtra" style="width:auto;">'+cfg.extraField.options.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select>';
+h+='<input id="mgrInput" placeholder="'+esc(cfg.placeholder||'Escribir nuevo...')+'"><button class="btn btn-accent" onclick="mgrAdd()">+ Agregar</button></div>';
+h+='<div class="row" style="justify-content:flex-end;margin-top:12px;"><button class="btn btn-accent" onclick="mgrDone()">Listo ✓</button></div>';
+openModal(h);
+document.querySelectorAll('#modalBody .mgrX').forEach(x=>x.onclick=()=>{
+const i=+x.dataset.i;const it=window._mgr.items[i];
+if(window._mgr.onRemove)window._mgr.onRemove(it);
+window._mgr.items.splice(i,1);renderMgr();
+});
+const mi=document.getElementById('mgrInput');
+mi.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();mgrAdd();}};
+setTimeout(()=>mi.focus(),80);
+}
+async function mgrAdd(){
+const cfg=window._mgr,inp=document.getElementById('mgrInput');
+const label=inp.value.trim();
+if(!label){toast('Escribe el nombre primero.');return;}
+if(cfg.items.some(it=>it.label.toLowerCase()===label.toLowerCase())){toast('Ya existe en la lista.');return;}
+const extra=cfg.extraField?document.getElementById('mgrExtra').value:null;
+inp.value='';
+try{await cfg.onAdd(label,extra);}
+catch(e){toast('Sin conexión: se usará solo en este dispositivo');}
+cfg.items.push({label:label,fixed:false});
+if(cfg.extraField)document.getElementById('mgrExtra').value=cfg.extraField.options[0];
+renderMgr();
+}
+function mgrDone(){
+const cfg=window._mgr;closeModal();
+if(cfg.onRefresh)cfg.onRefresh();
+toast('Lista actualizada ✓');
+}
+/* ------- Gestores concretos ------- */
+function openManageLineas(){
+const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>({label:c.nombre,fixed:false,cat:c}));
+openManagerModal({title:'Gestionar líneas de producción',subtitle:'Las 3 líneas originales son fijas. Las nuevas quedan disponibles en el selector para todos.',placeholder:'Ej. Sellado de bolsas',items:din,
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'linea',linea:'',nombre:label}});catalogo.push({tipo:'linea',linea:'',nombre:label});},
+onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
+onRefresh:()=>{fillLineaOptions();onLineaChange();}});
+}
+function openManageDefectos(){
+const lin=document.getElementById('f_linea').value;
+const fixed=(DEF_CHIPS[lin]||[]).map(f=>({label:f[0],fixed:true}));
+const extra=activeCatalogo().filter(c=>c.tipo==='defecto'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
+openManagerModal({title:'Gestionar lista de defectos',subtitle:'Línea: '+lin+'. Los de lista base son fijos; los agregados se pueden quitar con ✕.',placeholder:'Ej. Producto con suciedad...',extraField:{options:['Funcional','Estético']},items:fixed.concat(extra),
+onAdd:async(label,tipo)=>{await apiPost('addCatalog',{data:{tipo:'defecto',nombre:label,linea:lin,defTipo:tipo||'Funcional'}});catalogo.push({tipo:'defecto',linea:lin,nombre:label,defTipo:tipo||'Funcional'});},
+onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
+onRefresh:()=>onLineaChange()});
+}
+function openManagePruebas(){
+const lin=document.getElementById('f_linea').value;
+const fixed=[...document.querySelectorAll('#f_pruebas input')].filter(i=>!i.closest('.extra')).map(i=>({label:i.value,fixed:true}));
+const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
+openManagerModal({title:'Gestionar lista de pruebas',subtitle:'Línea: '+lin+'. Las base son fijas; agrega las de tu día a día.',placeholder:'Ej. Prueba de estanqueidad...',items:fixed.concat(extra),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:lin}});catalogo.push({tipo:'prueba',linea:lin,nombre:label});},
+onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
+onRefresh:()=>onLineaChange()});
+}
+function openManageEval(){
+const fixed=[...document.querySelectorAll('#r_pruebas input')].filter(i=>!i.closest('.rextra')).map(i=>({label:i.value,fixed:true}));
+const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').map(c=>({label:c.nombre,fixed:false,cat:c}));
+openManagerModal({title:'Gestionar lista de evaluaciones',subtitle:'Recepción de insumos. Las base son fijas; agrega las tuyas.',placeholder:'Ej. Verificación de peso...',items:fixed.concat(extra),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:'recepcion'}});catalogo.push({tipo:'prueba',linea:'recepcion',nombre:label});},
+onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
+onRefresh:()=>renderEvalExtras()});
+}
+function openManageInsumos(){
+const extra=activeCatalogo().filter(c=>c.tipo==='insumo').map(c=>({label:c.nombre,fixed:false,cat:c}));
+openManagerModal({title:'Gestionar insumos / tipos',subtitle:'Estos tipos aparecen en cada tarjeta de recepción.',placeholder:'Ej. Tapa plástica...',items:extra,
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'insumo',linea:'',nombre:label}});catalogo.push({tipo:'insumo',linea:'',nombre:label});},
+onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
+onRefresh:()=>document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s))});
+}
+/* ============ Fin gestores ============ */
 function addInsumoRow(material,pct){
 const row=document.createElement('div');row.className='defRow';
 row.innerHTML='<select class="insMat"><option>Petronaf</option><option>Global</option><option>Caldex</option><option>Otro</option></select><input class="insPct" type="number" min="0" max="100" placeholder="% en la mezcla"><button class="rm" onclick="this.parentElement.remove()">✕</button>';
@@ -718,11 +789,6 @@ saving=true;const bg=document.getElementById('btnGuardar');bg.disabled=true;bg.t
 try{
 const hini=document.getElementById('f_hini').value,hfin=document.getElementById('f_hfin').value;
 const pruebas=[...document.querySelectorAll('#f_pruebas input:checked')].map(c=>c.value);
-const nuevosCat=[];
-document.querySelectorAll('#defList .defRow').forEach(r=>{
-const sv=r.querySelector('.defSave'),t=r.querySelector('.defDesc').value.trim();
-if(sv&&sv.checked&&t)nuevosCat.push({tipo:'defecto',nombre:t,linea:linea,defTipo:r.querySelector('.defTipo').value});
-});
 const defectos=[...document.querySelectorAll('#defList .defRow')].map(r=>({tipo:r.querySelector('.defTipo').value,descripcion:r.querySelector('.defDesc').value.trim(),codigo:(r.querySelector('.defCod')||{}).value||'',media:(r._media||[])})).filter(d=>d.descripcion);
 let detalle=null;
 if(linea==='Anillos de cera'){
@@ -747,11 +813,6 @@ const data={fecha:fecha,linea:linea,codigo:codigo,lote:esHab?[...new Set(codsHab
 await apiPost('add',{data:data});
 localStorage.removeItem(DRAFT_KEY);
 document.getElementById('draftBarN').style.display='none';
-for(const c of nuevosCat){
-const ya=catalogo.some(x=>x.tipo===c.tipo&&x.linea===c.linea&&x.nombre.toLowerCase()===c.nombre.toLowerCase());
-const base=c.tipo==='defecto'&&(DEF_CHIPS[c.linea]||[]).some(b=>b[0].toLowerCase()===c.nombre.toLowerCase());
-if(!ya&&!base)await apiPost('addCatalog',{data:c}).catch(()=>{});
-}
 toast('Inspección guardada correctamente ✓');
 resetForm();
 await cargarDatos(true);
@@ -761,7 +822,7 @@ finally{saving=false;bg.disabled=false;bg.textContent='Guardar inspección';}
 }
 function resetForm(){
 document.getElementById('f_fecha').value=new Date().toISOString().slice(0,10);
-['f_codigo','f_lote','f_muestra','f_hini','f_hfin','f_inspector','f_encargado','f_otraPrueba','f_observaciones','defQuickDesc'].forEach(id=>document.getElementById(id).value='');
+['f_codigo','f_lote','f_muestra','f_hini','f_hfin','f_inspector','f_encargado','f_observaciones'].forEach(id=>document.getElementById(id).value='');
 document.querySelectorAll('#f_pruebas input').forEach(c=>c.checked=false);
 document.getElementById('defList').innerHTML='';defEmpty();
 ['c_temp','c_peso','t_tipo','t_obs'].forEach(id=>document.getElementById(id).value='');
@@ -769,7 +830,7 @@ document.getElementById('c_elast').value='Óptima';document.getElementById('c_du
 document.getElementById('c_acople').checked=false;document.getElementById('c_inyec').checked=false;document.getElementById('c_blister').checked=false;
 document.getElementById('t_presion').value=200;document.getElementById('t_resultado').value='Sin fuga - Aprobado';
 document.getElementById('insumosList').innerHTML='';document.getElementById('codigosList').innerHTML='';
-document.getElementById('f_linea').value='Prensado de tubos de abasto';onLineaChange();
+document.getElementById('f_linea').value='Prensado de tubos de abasto';window._lastLinea='Prensado de tubos de abasto';onLineaChange();
 pendingMedia=[];renderThumbs();clearSig();
 document.getElementById('draftBarN').style.display='none';
 document.getElementById('draftInfo').textContent='📝 Guardado automático activo';
@@ -780,7 +841,7 @@ if(saving)return;
 try{
 const d={
 savedAt:new Date().toLocaleTimeString(),
-fields:['f_fecha','f_linea','f_codigo','f_lote','f_muestra','f_hini','f_hfin','f_inspector','f_encargado','f_otraPrueba','f_observaciones'].reduce((a,id)=>{a[id]=v(id);return a;},{}),
+fields:['f_fecha','f_linea','f_codigo','f_lote','f_muestra','f_hini','f_hfin','f_inspector','f_encargado','f_observaciones'].reduce((a,id)=>{a[id]=v(id);return a;},{}),
 pruebas:[...document.querySelectorAll('#f_pruebas input:checked')].map(c=>c.value),
 defectos:[...document.querySelectorAll('#defList .defRow')].map(r=>({t:r.querySelector('.defTipo').value,d:r.querySelector('.defDesc').value,c:(r.querySelector('.defCod')||{}).value||'',m:(r._media||[])})),
 insumos:[...document.querySelectorAll('#insumosList .defRow')].map(r=>({m:r.querySelector('.insMat').value,p:r.querySelector('.insPct').value})),
@@ -797,7 +858,9 @@ function restoreDraft(){
 try{
 const raw=localStorage.getItem(DRAFT_KEY);if(!raw)return;
 const d=JSON.parse(raw);if(!d)return;
-if(d.fields){Object.keys(d.fields).forEach(id=>{const el=document.getElementById(id);if(el)el.value=d.fields[id];});onLineaChange();}
+if(d.fields){Object.keys(d.fields).forEach(id=>{const el=document.getElementById(id);if(el)el.value=d.fields[id];});
+if(d.fields.f_linea&&d.fields.f_linea!=='__MGR__')window._lastLinea=d.fields.f_linea;
+fillLineaOptions();onLineaChange();}
 document.getElementById('codigosList').innerHTML='';
 (d.pruebas||[]).forEach(p=>ensureChkValue(document.getElementById('f_pruebas'),p,true,'extra'));
 (d.insumos||[]).forEach(i=>addInsumoRow(i.m,i.p?Number(i.p):null));
@@ -822,8 +885,8 @@ if(!arr.length)c.innerHTML='<span class="hint">Aún no hay observaciones guardad
 }
 function fillItemTipos(sel){
 const cur=sel.value;
-const tips=[...new Set(catalogo.filter(c=>c.tipo==='insumo'&&c.nombre).map(c=>c.nombre))];
-sel.innerHTML='<option value="">— Selecciona tipo —</option>'+tips.map(t=>'<option>'+esc(t)+'</option>').join('');
+const tips=activeCatalogo().filter(c=>c.tipo==='insumo'&&c.nombre).map(c=>c.nombre);
+sel.innerHTML='<option value="">— Selecciona tipo —</option>'+[...new Set(tips)].map(t=>'<option>'+esc(t)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
 sel.value=tips.includes(cur)?cur:'';
 }
 function updRecSum(row){
@@ -834,31 +897,20 @@ function addRecItemRow(tipo,cod,cant,estado,abierto){
 const row=document.createElement('div');row.className='defRow defCard cod collapsible';
 if(abierto===undefined)abierto=!document.querySelector('#rItemsList .defRow');
 if(!abierto)row.classList.add('closed');
-row.innerHTML='<div class="defHead"><span class="codNum"></span><span class="sumTxt"></span><button type="button" class="rm" style="margin-left:auto">✕</button></div><div class="collBody"><div class="grid2"><div class="field"><label>Insumo / tipo</label><div style="display:flex;gap:6px;"><select class="riT" style="flex:1"></select><button type="button" class="btn btn-ghost" style="padding:8px 10px;" onclick="nuevoTipoInsumo(this)">➕</button></div></div><div class="field"><label>Código</label><input class="riC upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div><div class="field"><label>Cantidad recibida</label><input class="riQ" type="number" min="0" placeholder="Piezas"></div><div class="field"><label>Estado del código</label><select class="riE" onchange="updateDictamenUI();saveDraftRec()"><option>Conforme</option><option>Observado</option><option>Rechazado</option></select></div></div></div>';
+row.innerHTML='<div class="defHead"><span class="codNum"></span><span class="sumTxt"></span><button type="button" class="rm" style="margin-left:auto">✕</button></div><div class="collBody"><div class="grid2"><div class="field"><label>Insumo / tipo</label><select class="riT"></select></div><div class="field"><label>Código</label><input class="riC upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div><div class="field"><label>Cantidad recibida</label><input class="riQ" type="number" min="0" placeholder="Piezas"></div><div class="field"><label>Estado del código</label><select class="riE" onchange="updateDictamenUI();saveDraftRec()"><option>Conforme</option><option>Observado</option><option>Rechazado</option></select></div></div></div>';
 row.querySelector('.rm').onclick=()=>{row.remove();updateDictamenUI();saveDraftRec();};
 row.querySelector('.defHead').addEventListener('click',e=>{if(e.target.closest('.rm'))return;row.classList.toggle('closed');});
 row.addEventListener('input',()=>updRecSum(row));
+const rsel=row.querySelector('.riT');
+rsel.addEventListener('change',e=>{if(e.target.value==='__MGR__'){e.target.value='';openManageInsumos();}});
 document.getElementById('rItemsList').appendChild(row);
-fillItemTipos(row.querySelector('.riT'));
-if(tipo)row.querySelector('.riT').value=tipo;
+fillItemTipos(rsel);
+if(tipo)rsel.value=tipo;
 row.querySelector('.riC').value=cod||'';
 if(cant!=null)row.querySelector('.riQ').value=cant;
 if(estado)row.querySelector('.riE').value=estado;
 updRecSum(row);
 updateDictamenUI();
-}
-async function nuevoTipoInsumo(btn){
-const n=(prompt('Nombre del nuevo insumo / tipo:','')||'').trim();
-if(!n)return;
-btn.disabled=true;
-try{
-await apiPost('addCatalog',{data:{tipo:'insumo',linea:'',nombre:n,defTipo:''}});
-catalogo.push({tipo:'insumo',linea:'',nombre:n,defTipo:''});
-document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));
-const f=btn.closest('.field');if(f&&f.querySelector('.riT'))f.querySelector('.riT').value=n;
-toast('Tipo agregado ✓');
-}catch(e){toast('No se pudo guardar el tipo: '+e.message);}
-finally{btn.disabled=false;}
 }
 function readItems(){return[...document.querySelectorAll('#rItemsList .defRow')].map(r=>({tipo:r.querySelector('.riT').value,codigo:r.querySelector('.riC').value.trim(),cantidad:Number(r.querySelector('.riQ').value)||0,estado:r.querySelector('.riE').value})).filter(i=>i.codigo);}
 function updateDictamenUI(){
@@ -875,7 +927,6 @@ const d={
 savedAt:new Date().toLocaleTimeString(),
 fields:['r_fecha','r_tipo','r_proveedor','r_inspector','r_oc','r_guia','r_factura','r_ficha','r_hini','r_hfin'].reduce((a,id)=>{a[id]=v(id);return a;},{}),
 pruebas:[...document.querySelectorAll('#r_pruebas input:checked')].map(c=>c.value),
-otra:v('r_otra'),
 items:[...document.querySelectorAll('#rItemsList .defRow')].map(r=>({t:r.querySelector('.riT').value,c:r.querySelector('.riC').value,q:r.querySelector('.riQ').value,e:r.querySelector('.riE').value})),
 resultado:v('r_resultado'),obs:v('r_obs'),obsGuardar:cb('r_obsGuardar'),media:pendingMediaRec
 };
@@ -891,7 +942,6 @@ if(d.fields){Object.keys(d.fields).forEach(id=>{const el=document.getElementById
 document.getElementById('rItemsList').innerHTML='';
 (d.items||[]).forEach((i,ix)=>addRecItemRow(i.t,i.c,i.q?Number(i.q):null,i.e,ix===0));
 (d.pruebas||[]).forEach(p=>ensureChkValue(document.getElementById('r_pruebas'),p,true,'rextra'));
-if(d.otra)document.getElementById('r_otra').value=d.otra;
 if(d.resultado)document.getElementById('r_resultado').value=d.resultado;
 if(d.obs!=null)document.getElementById('r_obs').value=d.obs;
 if(d.obsGuardar!=null)document.getElementById('r_obsGuardar').checked=d.obsGuardar;
@@ -901,7 +951,7 @@ updateDictamenUI();
 }
 function descartarBorradorRec(){if(savingRec)return;localStorage.removeItem(DRAFT_REC_KEY);resetRecForm();toast('Formulario en blanco, listo para empezar 🗑');}
 function resetRecForm(){
-['r_oc','r_guia','r_factura','r_ficha','r_hini','r_hfin','r_proveedor','r_inspector','r_otra','r_obs'].forEach(id=>document.getElementById(id).value='');
+['r_oc','r_guia','r_factura','r_ficha','r_hini','r_hfin','r_proveedor','r_inspector','r_obs'].forEach(id=>document.getElementById(id).value='');
 document.getElementById('r_fecha').value=new Date().toISOString().slice(0,10);
 document.getElementById('r_tipo').value='Orden de compra (insumo / materia prima)';
 document.getElementById('r_resultado').value='Ingreso aprobado — todo conforme';
@@ -926,7 +976,6 @@ savingRec=true;const bg=document.getElementById('btnGuardarRec');bg.disabled=tru
 try{
 const hini=v('r_hini'),hfin=v('r_hfin');
 const pruebas=[...document.querySelectorAll('#r_pruebas input:checked')].map(c=>c.value);
-const otra=v('r_otra').trim();if(otra&&!pruebas.includes(otra))pruebas.push(otra);
 if(cb('r_obsGuardar')){const o=v('r_obs').trim();if(o&&!getObs().includes(o)){const arr=getObs();arr.push(o);localStorage.setItem(OBS_KEY,JSON.stringify(arr));pintarObsChips();}}
 const data={fecha:fecha,tipoIngreso:v('r_tipo'),proveedor:prov,inspector:insp,oc:v('r_oc').trim(),guia:v('r_guia').trim(),factura:v('r_factura').trim(),ficha:v('r_ficha').trim(),horaInicio:hini,horaFin:hfin,tiempoHoras:horasHombre(hini,hfin),items:items,pruebas:pruebas,resultado:v('r_resultado'),observaciones:v('r_obs').trim(),media:pendingMediaRec.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),creadoEn:new Date().toISOString()};
 await apiPost('addRec',{data:data});
@@ -990,7 +1039,7 @@ const el=document.getElementById('bannerTxt');if(!el)return;
 el.textContent=e?('✅ Reporte de hoy enviado a las '+e.enviadoEn+' ('+e.insp+' inspecciones, '+e.rec+' recepciones)'):'📡 Reporte del día pendiente de envío.';
 }
 const centerTxt={id:'centerTxt',afterDraw(ch){
-const ctx=ch.ctx;if(!ctx||!ch.$pct&&ch.$pct!==0)return;
+const ctx=ch.ctx;if(!ctx||(ch.$pct==null))return;
 const m=ch.getDatasetMeta(0).data[0];if(!m)return;
 ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
 ctx.fillStyle=ch.$col;ctx.font='bold 30px Arial';ctx.fillText(ch.$pct+'%',m.x,m.y-8);
@@ -1025,7 +1074,7 @@ const mapa={};
 docs.forEach(d=>(d.defectos||[]).forEach(x=>{const k=(x.descripcion||'—').slice(0,40);mapa[k]=(mapa[k]||0)+1;}));
 const ent=Object.entries(mapa).sort((a,b)=>b[1]-a[1]).slice(0,10);
 const td=document.getElementById('topDef');
-td.innerHTML=ent.length?ent.map(e=>'<span style="border-color:'+(docs.some(d=>(d.defectos||[]).some(x=>x.descripcion===e[0]&&x.tipo==='Funcional'))?'#c0392b':'#c0842a')+';color:inherit">'+esc(e[0])+' ×'+e[1]+'</span>').join(''):'<span class="hint">Sin defectos registrados en el período. ✅</span>';
+td.innerHTML=ent.length?ent.map(e=>'<span style="border-color:#c0392b;color:inherit">'+esc(e[0])+' ×'+e[1]+'</span>').join(''):'<span class="hint">Sin defectos registrados en el período. ✅</span>';
 renderHallazgos(docs);
 }
 function renderHallazgos(docs){
@@ -1106,7 +1155,7 @@ const kp=kpiCodigos(docs);const pct=kp.tot?Math.round(kp.conf/kp.tot*100):100;
 const el=document.createElement('div');
 el.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;color:#152633;font-family:Arial;width:700px;padding:24px;';
 let h='<div style="text-align:center;border-bottom:3px solid #023B5C;padding-bottom:10px;margin-bottom:14px;"><h1 style="margin:0;font-size:20px;color:#023B5C;">GRUPO SOLE</h1><p style="margin:2px 0;font-size:11px;letter-spacing:2px;">GERENCIA DE INNOVACIÓN Y CALIDAD</p><p style="margin:6px 0 0;font-size:12px;">Informe de Control de Calidad · '+hoy+'</p></div>';
-h+='<p style="font-size:12px;"><b>Inspecciones:</b> '+docs.length+' · <b>Códigos revisados:</b> '+kp.tot+' (<b style="color:'+col+'">'+pct+'% conformes</b>) · <b>Incidencias:</b> '+docs.reduce((a,d)=>a+(d.defectos||[]).length,0)+' · <b>Tiempo invertido:</b> '+fmtDur(docs.reduce((a,d)=>a+(d.horasHombre||0),0))+'</p>';
+h+='<p style="font-size:12px;"><b>Inspecciones:</b> '+docs.length+' · <b>Códigos revisados:</b> '+kp.tot+' (<b>'+pct+'% conformes</b>) · <b>Incidencias:</b> '+docs.reduce((a,d)=>a+(d.defectos||[]).length,0)+' · <b>Tiempo invertido:</b> '+fmtDur(docs.reduce((a,d)=>a+(d.horasHombre||0),0))+'</p>';
 if(docs.length){
 h+='<div class="secTitle" style="font-size:13px;">01. RESUMEN DE INSPECCIONES</div><table border="1" cellpadding="5" style="border-collapse:collapse;width:100%;font-size:11px;"><tr style="background:#023B5C;color:#fff;"><th>N°</th><th>Fecha</th><th>Linea</th><th>Codigo</th><th>Inspector</th><th>Duración</th><th>Incid.</th></tr>';
 docs.forEach((d,i)=>{h+='<tr><td>'+String(i+1).padStart(2,'0')+'</td><td>'+esc(d.fecha)+'</td><td>'+esc(d.linea)+'</td><td>'+esc(d.codigo)+'</td><td>'+esc(d.inspector)+'</td><td>'+fmtDur(d.horasHombre)+'</td><td>'+((d.defectos||[]).length)+'</td></tr>';});
