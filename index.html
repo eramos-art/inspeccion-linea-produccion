@@ -58,6 +58,7 @@ canvas#chDias,canvas#chRing{background:var(--card);border:none;height:auto}
 .save-bar .btn{flex:1;padding:13px;font-size:14.5px}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90%;text-align:center}
 .toast.show{opacity:1}
+.filters{display:grid;grid-template-columns:repeat(4,fr);gap:8px}
 .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:700px){.filters{grid-template-columns:1fr 1fr}}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
@@ -384,7 +385,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbziCI43x5Ln-mhS5FNvFGVBdKYuqQYyNVtYcXJKUjDXvsEpyf30Ox5JkLzIA1H_oJGL/exec';
 let allDocs=[],allRecs=[],allEnvios=[],catalogo=[],saving=false,cargando=false,pendingMedia=[],pendingMediaRec=[],savingRec=false,defMediaSeq=0;
-async function apiGet(){const r=await fetch(SCRIPT_URL,{method:'GET'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function apiGet(){const r=await fetch(SCRIPT_URL+'?_='+Date.now(),{method:'GET',cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiPost(action,payload){const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action},payload))});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(j.ok===false)throw new Error(j.error||j.msg||'Error desconocido');return j;}
 function parseJ(v,f){try{return v?JSON.parse(v):f;}catch{return f;}}
 function fmtFecha(v){if(!v)return'';const s=String(v);const m=s.match(/^(\d{4}-\d{2}-\d{2})/);if(m)return m[1];const d=new Date(v);return isNaN(d)?s:d.toISOString().slice(0,10);}
@@ -393,15 +394,18 @@ function fmtDur(h){const m=Math.round((h||0)*60);if(!m)return'0 min';const H=Mat
 function v(id){return document.getElementById(id).value;}
 function cb(id){return document.getElementById(id).checked;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-let _tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3500);}
+let _tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),4200);}
 function openModal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modalBg').classList.add('show');}
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Observado'))return'OBSERVADO';return'CONFORME';}
-const REM_KEY='sole_cat_removed_v1';
+const REM_KEY='sole_cat_removed_v1',CAT_LOCAL_KEY='sole_cat_local_v1';
 function getRemoved(){try{return new Set(JSON.parse(localStorage.getItem(REM_KEY)||'[]'));}catch(e){return new Set();}}
 function markRemoved(k){const s=getRemoved();s.add(k);localStorage.setItem(REM_KEY,JSON.stringify([...s]));}
 function catKey(t,l,n){return(t+'|'+(l||'')+'|'+n).toLowerCase();}
-function activeCatalogo(){const rm=getRemoved();return catalogo.filter(c=>c.nombre&&!rm.has(catKey(c.tipo,c.linea,c.nombre)));}
+function getLocalCat(){try{return JSON.parse(localStorage.getItem(CAT_LOCAL_KEY)||'[]');}catch(e){return[];}}
+function addLocalCat(item){try{const arr=getLocalCat();if(!arr.some(x=>catKey(x.tipo,x.linea,x.nombre)===catKey(item.tipo,item.linea,item.nombre))){arr.push(item);localStorage.setItem(CAT_LOCAL_KEY,JSON.stringify(arr));}}catch(e){}}
+function allCatalogo(){const loc=getLocalCat().filter(l=>l.nombre&&!catalogo.some(c=>catKey(c.tipo,c.linea,c.nombre)===catKey(l.tipo,l.linea,l.nombre)));return catalogo.concat(loc);}
+function activeCatalogo(){const rm=getRemoved();return allCatalogo().filter(c=>c.nombre&&!rm.has(catKey(c.tipo,c.linea,c.nombre)));}
 function kpiCodigos(list){let tot=0,conf=0;(list||[]).forEach(d=>{const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){cs.forEach(c=>{tot++;if((c.estado||'Conforme')==='Conforme')conf++;});}else{tot++;if(!(d.defectos||[]).length)conf++;}});return{tot:tot,conf:conf};}
 function docWorst(d){const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){if(cs.some(c=>c.estado==='Rechazado'))return'Rechazado';if(cs.some(c=>c.estado==='Observado'))return'Observado';return'Conforme';}const df=d.defectos||[];if(df.some(x=>x.tipo==='Funcional'))return'Rechazado';if(df.length)return'Observado';return'Conforme';}
 async function cargarDatos(silencioso){
@@ -460,7 +464,7 @@ const cur=document.getElementById('f_linea').value;
 const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>c.nombre);
 const sel=document.getElementById('f_linea');
 sel.innerHTML=LINEAS_FIJAS.concat(din).map(l=>'<option>'+esc(l)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
-sel.value=[...sel.options].some(o=>o.value===cur||o.text===cur)&&cur!=='__MGR__'?cur:LINEAS_FIJAS[0];
+sel.value=cur&&cur!=='__MGR__'&&LINEAS_FIJAS.concat(din).includes(cur)?cur:LINEAS_FIJAS[0];
 const hf=document.getElementById('h_linea'),hcur=hf.value;
 hf.innerHTML='<option value="">Todas</option>'+LINEAS_FIJAS.concat(din).map(l=>'<option>'+esc(l)+'</option>').join('');
 if(hcur)hf.value=hcur;
@@ -489,16 +493,15 @@ l.innerHTML='<input type="checkbox">';const i=l.querySelector('input');i.value=c
 l.appendChild(document.createTextNode(c.nombre));document.getElementById('f_pruebas').appendChild(l);
 });
 window._defChipsBase=base;
-document.getElementById('defBuscar').value='';
 pintarChips(base);
 }
 function pintarChips(list){
 const chips=document.getElementById('defChips');chips.innerHTML='';
+if(!list.length)chips.innerHTML='<span class="hint">Sin sugerencias — usa ⚙️ Gestionar lista para agregar.</span>';
 list.forEach(([label,tipo])=>{const b=document.createElement('button');b.className='chip';b.type='button';b.textContent='+ '+label;b.onclick=()=>addDefRow(tipo,label,true);chips.appendChild(b);});
 const nb=document.createElement('button');nb.className='chip new';nb.type='button';nb.textContent='➕ Nuevo defecto...';
 nb.onclick=()=>openManageDefectos();
 chips.appendChild(nb);
-if(!list.length)chips.insertBefore(nb,chips.firstChild);
 }
 function filtrarChips(){
 const q=document.getElementById('defBuscar').value.trim().toLowerCase();
@@ -523,7 +526,7 @@ activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').forEach(c=>
 if(![...cont.querySelectorAll('input')].some(i=>low(i.value)===low(c.nombre)))ensureChkValue(cont,c.nombre,false,'rextra');
 });
 }
-/* ============ GESTOR GENÉRICO DE LISTAS (estilo Reprocesos) ============ */
+/* ============ GESTOR GENÉRICO DE LISTAS ============ */
 function openManagerModal(cfg){
 window._mgr=cfg;renderMgr();
 }
@@ -556,22 +559,29 @@ if(!label){toast('Escribe el nombre primero.');return;}
 if(cfg.items.some(it=>it.label.toLowerCase()===label.toLowerCase())){toast('Ya existe en la lista.');return;}
 const extra=cfg.extraField?document.getElementById('mgrExtra').value:null;
 inp.value='';
+let ok=true,err='';
+const catItem=cfg.catItem?cfg.catItem(label,extra):null;
+if(catItem){
+catalogo.push(catItem);
 try{await cfg.onAdd(label,extra);}
-catch(e){toast('Sin conexión: se usará solo en este dispositivo');}
+catch(e){ok=false;err=e.message||'error de conexión';addLocalCat(catItem);}
+}
 cfg.items.push({label:label,fixed:false});
-if(cfg.extraField)document.getElementById('mgrExtra').value=cfg.extraField.options[0];
+if(cfg.afterAdd)cfg.afterAdd(label,extra);
 renderMgr();
+if(catItem)toast(ok?'✓ "'+label+'" guardado para todo el equipo':'⚠ "'+label+'" solo en este dispositivo. Servidor dijo: '+err);
 }
 function mgrDone(){
 const cfg=window._mgr;closeModal();
 if(cfg.onRefresh)cfg.onRefresh();
-toast('Lista actualizada ✓');
 }
 /* ------- Gestores concretos ------- */
 function openManageLineas(){
 const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>({label:c.nombre,fixed:false,cat:c}));
-openManagerModal({title:'Gestionar líneas de producción',subtitle:'Las 3 líneas originales son fijas. Las nuevas quedan disponibles en el selector para todos.',placeholder:'Ej. Sellado de bolsas',items:din,
-onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'linea',linea:'',nombre:label}});catalogo.push({tipo:'linea',linea:'',nombre:label});},
+openManagerModal({title:'Gestionar líneas de producción',subtitle:'Las 3 líneas originales son fijas. Las nuevas quedan en el selector para todos.',placeholder:'Ej. Sellado de bolsas',items:din,
+catItem:label=>({tipo:'linea',linea:'',nombre:label}),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'linea',linea:'',nombre:label}});},
+afterAdd:label=>{fillLineaOptions();const sel=document.getElementById('f_linea');sel.value=label;window._lastLinea=label;onLineaChange();},
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>{fillLineaOptions();onLineaChange();}});
 }
@@ -580,7 +590,9 @@ const lin=document.getElementById('f_linea').value;
 const fixed=(DEF_CHIPS[lin]||[]).map(f=>({label:f[0],fixed:true}));
 const extra=activeCatalogo().filter(c=>c.tipo==='defecto'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
 openManagerModal({title:'Gestionar lista de defectos',subtitle:'Línea: '+lin+'. Los de lista base son fijos; los agregados se pueden quitar con ✕.',placeholder:'Ej. Producto con suciedad...',extraField:{options:['Funcional','Estético']},items:fixed.concat(extra),
-onAdd:async(label,tipo)=>{await apiPost('addCatalog',{data:{tipo:'defecto',nombre:label,linea:lin,defTipo:tipo||'Funcional'}});catalogo.push({tipo:'defecto',linea:lin,nombre:label,defTipo:tipo||'Funcional'});},
+catItem:(label,tipo)=>({tipo:'defecto',linea:lin,nombre:label,defTipo:tipo||'Funcional'}),
+onAdd:async(label,tipo)=>{await apiPost('addCatalog',{data:{tipo:'defecto',nombre:label,linea:lin,defTipo:tipo||'Funcional'}});},
+afterAdd:(label,tipo)=>{addDefRow(tipo||'Funcional',label,true);defEmpty();},
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>onLineaChange()});
 }
@@ -589,7 +601,9 @@ const lin=document.getElementById('f_linea').value;
 const fixed=[...document.querySelectorAll('#f_pruebas input')].filter(i=>!i.closest('.extra')).map(i=>({label:i.value,fixed:true}));
 const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
 openManagerModal({title:'Gestionar lista de pruebas',subtitle:'Línea: '+lin+'. Las base son fijas; agrega las de tu día a día.',placeholder:'Ej. Prueba de estanqueidad...',items:fixed.concat(extra),
-onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:lin}});catalogo.push({tipo:'prueba',linea:lin,nombre:label});},
+catItem:label=>({tipo:'prueba',linea:lin,nombre:label}),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:lin}});},
+afterAdd:label=>{ensureChkValue(document.getElementById('f_pruebas'),label,true,'extra');saveDraft();},
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>onLineaChange()});
 }
@@ -597,14 +611,18 @@ function openManageEval(){
 const fixed=[...document.querySelectorAll('#r_pruebas input')].filter(i=>!i.closest('.rextra')).map(i=>({label:i.value,fixed:true}));
 const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').map(c=>({label:c.nombre,fixed:false,cat:c}));
 openManagerModal({title:'Gestionar lista de evaluaciones',subtitle:'Recepción de insumos. Las base son fijas; agrega las tuyas.',placeholder:'Ej. Verificación de peso...',items:fixed.concat(extra),
-onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:'recepcion'}});catalogo.push({tipo:'prueba',linea:'recepcion',nombre:label});},
+catItem:label=>({tipo:'prueba',linea:'recepcion',nombre:label}),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:'recepcion'}});},
+afterAdd:label=>{ensureChkValue(document.getElementById('r_pruebas'),label,true,'rextra');},
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>renderEvalExtras()});
 }
 function openManageInsumos(){
 const extra=activeCatalogo().filter(c=>c.tipo==='insumo').map(c=>({label:c.nombre,fixed:false,cat:c}));
 openManagerModal({title:'Gestionar insumos / tipos',subtitle:'Estos tipos aparecen en cada tarjeta de recepción.',placeholder:'Ej. Tapa plástica...',items:extra,
-onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'insumo',linea:'',nombre:label}});catalogo.push({tipo:'insumo',linea:'',nombre:label});},
+catItem:label=>({tipo:'insumo',linea:'',nombre:label}),
+onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'insumo',linea:'',nombre:label}});},
+afterAdd:label=>{document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));const arr=[...document.querySelectorAll('#rItemsList .riT')];if(arr.length)arr[arr.length-1].value=label;},
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s))});
 }
