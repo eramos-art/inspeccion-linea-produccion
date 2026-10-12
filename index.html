@@ -58,7 +58,6 @@ canvas#chDias,canvas#chRing{background:var(--card);border:none;height:auto}
 .save-bar .btn{flex:1;padding:13px;font-size:14.5px}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90%;text-align:center}
 .toast.show{opacity:1}
-.filters{display:grid;grid-template-columns:repeat(4,fr);gap:8px}
 .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:700px){.filters{grid-template-columns:1fr 1fr}}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
@@ -173,7 +172,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <label class="chk"><input type="checkbox" value="Limpieza y pulido">Verificación de limpieza y pulido</label>
 <label class="chk"><input type="checkbox" value="Identificación y embalaje">Identificación y embalaje</label>
 </div>
-<div class="row" style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="openManagePruebas()">⚙️ Gestionar lista de pruebas</button><span class="hint" style="margin:4px 0 0;">Agrega o quita pruebas de esta línea — quedan guardadas</span></div>
+<div class="row" style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="openManagePruebas()">⚙️ Gestionar lista de pruebas</button><span class="hint" style="margin:4px 0 0;">Agrega o quita pruebas de esta línea — quedan guardadas para todos</span></div>
 </div></div>
 <div class="card"><h3>🧾 Datos específicos de la prueba</h3><div class="body">
 <div id="det-cera" style="display:none;">
@@ -526,10 +525,7 @@ activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').forEach(c=>
 if(![...cont.querySelectorAll('input')].some(i=>low(i.value)===low(c.nombre)))ensureChkValue(cont,c.nombre,false,'rextra');
 });
 }
-/* ============ GESTOR GENÉRICO DE LISTAS ============ */
-function openManagerModal(cfg){
-window._mgr=cfg;renderMgr();
-}
+function openManagerModal(cfg){window._mgr=cfg;renderMgr();}
 function renderMgr(){
 const cfg=window._mgr;
 let h='<h4>⚙️ '+esc(cfg.title)+'</h4>';
@@ -562,20 +558,18 @@ inp.value='';
 let ok=true,err='';
 const catItem=cfg.catItem?cfg.catItem(label,extra):null;
 if(catItem){
-catalogo.push(catItem);
-try{await cfg.onAdd(label,extra);}
+try{await cfg.onAdd(label,extra);catalogo.push(catItem);}
 catch(e){ok=false;err=e.message||'error de conexión';addLocalCat(catItem);}
 }
 cfg.items.push({label:label,fixed:false});
 if(cfg.afterAdd)cfg.afterAdd(label,extra);
 renderMgr();
-if(catItem)toast(ok?'✓ "'+label+'" guardado para todo el equipo':'⚠ "'+label+'" solo en este dispositivo. Servidor dijo: '+err);
+if(catItem)toast(ok?'✓ "'+label+'" guardado para todo el equipo':'⚠ "'+label+'" SOLO en este dispositivo. Servidor dijo: '+err);
 }
 function mgrDone(){
 const cfg=window._mgr;closeModal();
 if(cfg.onRefresh)cfg.onRefresh();
 }
-/* ------- Gestores concretos ------- */
 function openManageLineas(){
 const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>({label:c.nombre,fixed:false,cat:c}));
 openManagerModal({title:'Gestionar líneas de producción',subtitle:'Las 3 líneas originales son fijas. Las nuevas quedan en el selector para todos.',placeholder:'Ej. Sellado de bolsas',items:din,
@@ -626,7 +620,6 @@ afterAdd:label=>{document.querySelectorAll('#rItemsList .riT').forEach(s=>fillIt
 onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s))});
 }
-/* ============ Fin gestores ============ */
 function addInsumoRow(material,pct){
 const row=document.createElement('div');row.className='defRow';
 row.innerHTML='<select class="insMat"><option>Petronaf</option><option>Global</option><option>Caldex</option><option>Otro</option></select><input class="insPct" type="number" min="0" max="100" placeholder="% en la mezcla"><button class="rm" onclick="this.parentElement.remove()">✕</button>';
