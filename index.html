@@ -134,7 +134,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección de Línea de Producción · Recepción de Insumos</div>
+<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.2</div>
 </div>
 <div class="tabs">
 <div class="tab active" data-tab="nueva">📋 Inspección</div>
@@ -397,14 +397,15 @@ let _tt;function toast(m){const t=document.getElementById('toast');t.textContent
 function openModal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modalBg').classList.add('show');}
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Observado'))return'OBSERVADO';return'CONFORME';}
-const REM_KEY='sole_cat_removed_v1',CAT_LOCAL_KEY='sole_cat_local_v1';
-function getRemoved(){try{return new Set(JSON.parse(localStorage.getItem(REM_KEY)||'[]'));}catch(e){return new Set();}}
-function markRemoved(k){const s=getRemoved();s.add(k);localStorage.setItem(REM_KEY,JSON.stringify([...s]));}
-function catKey(t,l,n){return(t+'|'+(l||'')+'|'+n).toLowerCase();}
+/* v6.2: catálogo simple y a prueba de tontos — la HOJA es la única verdad, sin listas de ocultos */
+const CAT_LOCAL_KEY='sole_cat_local_v1';
+function catKey(t,l,n){return(t+'|'+(l||'')+'|'+n).trim().toLowerCase();}
 function getLocalCat(){try{return JSON.parse(localStorage.getItem(CAT_LOCAL_KEY)||'[]');}catch(e){return[];}}
 function addLocalCat(item){try{const arr=getLocalCat();if(!arr.some(x=>catKey(x.tipo,x.linea,x.nombre)===catKey(item.tipo,item.linea,item.nombre))){arr.push(item);localStorage.setItem(CAT_LOCAL_KEY,JSON.stringify(arr));}}catch(e){}}
 function allCatalogo(){const loc=getLocalCat().filter(l=>l.nombre&&!catalogo.some(c=>catKey(c.tipo,c.linea,c.nombre)===catKey(l.tipo,l.linea,l.nombre)));return catalogo.concat(loc);}
-function activeCatalogo(){const rm=getRemoved();return allCatalogo().filter(c=>c.nombre&&!rm.has(catKey(c.tipo,c.linea,c.nombre)));}
+function activeCatalogo(){return allCatalogo().filter(c=>c.nombre&&String(c.nombre).trim());}
+function catTipo(c,t){return String(c.tipo||'').trim().toLowerCase()===t;}
+function catLinea(c,l){return String(c.linea||'').trim().toLowerCase()===String(l||'').trim().toLowerCase();}
 function kpiCodigos(list){let tot=0,conf=0;(list||[]).forEach(d=>{const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){cs.forEach(c=>{tot++;if((c.estado||'Conforme')==='Conforme')conf++;});}else{tot++;if(!(d.defectos||[]).length)conf++;}});return{tot:tot,conf:conf};}
 function docWorst(d){const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){if(cs.some(c=>c.estado==='Rechazado'))return'Rechazado';if(cs.some(c=>c.estado==='Observado'))return'Observado';return'Conforme';}const df=d.defectos||[];if(df.some(x=>x.tipo==='Funcional'))return'Rechazado';if(df.length)return'Observado';return'Conforme';}
 async function cargarDatos(silencioso){
@@ -424,6 +425,7 @@ const he=document.getElementById('histEmpty');he.style.display='block';he.textCo
 }finally{cargando=false;}
 }
 async function boot(){
+try{localStorage.removeItem('sole_cat_removed_v1');}catch(e){}
 document.getElementById('f_fecha').value=new Date().toISOString().slice(0,10);
 document.getElementById('r_fecha').value=new Date().toISOString().slice(0,10);
 window._lastLinea=document.getElementById('f_linea').value;
@@ -460,7 +462,7 @@ const DEF_CHIPS={
 const LINEAS_FIJAS=['Prensado de tubos de abasto','Anillos de cera','Habilitación de productos'];
 function fillLineaOptions(){
 const cur=document.getElementById('f_linea').value;
-const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>c.nombre);
+const din=[...new Set(activeCatalogo().filter(c=>catTipo(c,'linea')).map(c=>c.nombre))];
 const sel=document.getElementById('f_linea');
 sel.innerHTML=LINEAS_FIJAS.concat(din).map(l=>'<option>'+esc(l)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
 sel.value=cur&&cur!=='__MGR__'&&LINEAS_FIJAS.concat(din).includes(cur)?cur:LINEAS_FIJAS[0];
@@ -481,12 +483,12 @@ document.getElementById('det-habilitacion').style.display=lin==='Habilitación d
 const hab=lin==='Habilitación de productos';
 ['fw_codigo','fw_lote','fw_muestra'].forEach(id=>document.getElementById(id).style.display=hab?'none':'block');
 if(hab&&!document.querySelector('#codigosList .defRow'))addCodigoRow();
-const base=(DEF_CHIPS[lin]||[]).slice(),low=x=>x.toLowerCase();
-activeCatalogo().filter(c=>c.tipo==='defecto'&&c.linea===lin&&!base.some(b=>low(b[0])===low(c.nombre))).forEach(c=>base.push([c.nombre,c.defTipo||'Funcional']));
+const base=(DEF_CHIPS[lin]||[]).slice();
+activeCatalogo().filter(c=>catTipo(c,'defecto')&&catLinea(c,lin)&&!base.some(b=>b[0].trim().toLowerCase()===c.nombre.trim().toLowerCase())).forEach(c=>base.push([c.nombre,c.defTipo||'Funcional']));
 const marcadas=new Set([...document.querySelectorAll('#f_pruebas input:checked')].map(i=>i.value));
 document.querySelectorAll('#f_pruebas .extra').forEach(e=>e.remove());
-const fijas=[...document.querySelectorAll('#f_pruebas input')].map(i=>low(i.value));
-activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea===lin&&!fijas.includes(low(c.nombre))).forEach(c=>{
+const fijas=[...document.querySelectorAll('#f_pruebas input')].map(i=>i.value.trim().toLowerCase());
+activeCatalogo().filter(c=>catTipo(c,'prueba')&&catLinea(c,lin)&&!fijas.includes(c.nombre.trim().toLowerCase())).forEach(c=>{
 const l=document.createElement('label');l.className='chk extra';
 l.innerHTML='<input type="checkbox">';const i=l.querySelector('input');i.value=c.nombre;i.checked=marcadas.has(c.nombre);
 l.appendChild(document.createTextNode(c.nombre));document.getElementById('f_pruebas').appendChild(l);
@@ -520,9 +522,8 @@ return i;
 function renderEvalExtras(){
 const cont=document.getElementById('r_pruebas');if(!cont)return;
 cont.querySelectorAll('.rextra').forEach(e=>e.remove());
-const low=x=>x.toLowerCase();
-activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').forEach(c=>{
-if(![...cont.querySelectorAll('input')].some(i=>low(i.value)===low(c.nombre)))ensureChkValue(cont,c.nombre,false,'rextra');
+activeCatalogo().filter(c=>catTipo(c,'prueba')&&catLinea(c,'recepcion')).forEach(c=>{
+if(![...cont.querySelectorAll('input')].some(i=>i.value.trim().toLowerCase()===c.nombre.trim().toLowerCase()))ensureChkValue(cont,c.nombre,false,'rextra');
 });
 }
 function openManagerModal(cfg){window._mgr=cfg;renderMgr();}
@@ -540,9 +541,8 @@ h+='<input id="mgrInput" placeholder="'+esc(cfg.placeholder||'Escribir nuevo...'
 h+='<div class="row" style="justify-content:flex-end;margin-top:12px;"><button class="btn btn-accent" onclick="mgrDone()">Listo ✓</button></div>';
 openModal(h);
 document.querySelectorAll('#modalBody .mgrX').forEach(x=>x.onclick=()=>{
-const i=+x.dataset.i;const it=window._mgr.items[i];
-if(window._mgr.onRemove)window._mgr.onRemove(it);
-window._mgr.items.splice(i,1);renderMgr();
+window._mgr.items.splice(+x.dataset.i,1);renderMgr();
+toast('Quitado de esta vista. Para borrarlo de todos los equipos, elimina la fila en la hoja Catalogo.');
 });
 const mi=document.getElementById('mgrInput');
 mi.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();mgrAdd();}};
@@ -571,53 +571,48 @@ const cfg=window._mgr;closeModal();
 if(cfg.onRefresh)cfg.onRefresh();
 }
 function openManageLineas(){
-const din=activeCatalogo().filter(c=>c.tipo==='linea').map(c=>({label:c.nombre,fixed:false,cat:c}));
+const din=activeCatalogo().filter(c=>catTipo(c,'linea')).map(c=>({label:c.nombre,fixed:false}));
 openManagerModal({title:'Gestionar líneas de producción',subtitle:'Las 3 líneas originales son fijas. Las nuevas quedan en el selector para todos.',placeholder:'Ej. Sellado de bolsas',items:din,
 catItem:label=>({tipo:'linea',linea:'',nombre:label}),
 onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'linea',linea:'',nombre:label}});},
 afterAdd:label=>{fillLineaOptions();const sel=document.getElementById('f_linea');sel.value=label;window._lastLinea=label;onLineaChange();},
-onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>{fillLineaOptions();onLineaChange();}});
 }
 function openManageDefectos(){
 const lin=document.getElementById('f_linea').value;
 const fixed=(DEF_CHIPS[lin]||[]).map(f=>({label:f[0],fixed:true}));
-const extra=activeCatalogo().filter(c=>c.tipo==='defecto'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
-openManagerModal({title:'Gestionar lista de defectos',subtitle:'Línea: '+lin+'. Los de lista base son fijos; los agregados se pueden quitar con ✕.',placeholder:'Ej. Producto con suciedad...',extraField:{options:['Funcional','Estético']},items:fixed.concat(extra),
+const extra=activeCatalogo().filter(c=>catTipo(c,'defecto')&&catLinea(c,lin)).map(c=>({label:c.nombre,fixed:false}));
+openManagerModal({title:'Gestionar lista de defectos',subtitle:'Línea: '+lin+'. Los de lista base son fijos.',placeholder:'Ej. Producto con suciedad...',extraField:{options:['Funcional','Estético']},items:fixed.concat(extra),
 catItem:(label,tipo)=>({tipo:'defecto',linea:lin,nombre:label,defTipo:tipo||'Funcional'}),
 onAdd:async(label,tipo)=>{await apiPost('addCatalog',{data:{tipo:'defecto',nombre:label,linea:lin,defTipo:tipo||'Funcional'}});},
 afterAdd:(label,tipo)=>{addDefRow(tipo||'Funcional',label,true);defEmpty();},
-onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>onLineaChange()});
 }
 function openManagePruebas(){
 const lin=document.getElementById('f_linea').value;
 const fixed=[...document.querySelectorAll('#f_pruebas input')].filter(i=>!i.closest('.extra')).map(i=>({label:i.value,fixed:true}));
-const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea===lin).map(c=>({label:c.nombre,fixed:false,cat:c}));
+const extra=activeCatalogo().filter(c=>catTipo(c,'prueba')&&catLinea(c,lin)).map(c=>({label:c.nombre,fixed:false}));
 openManagerModal({title:'Gestionar lista de pruebas',subtitle:'Línea: '+lin+'. Las base son fijas; agrega las de tu día a día.',placeholder:'Ej. Prueba de estanqueidad...',items:fixed.concat(extra),
 catItem:label=>({tipo:'prueba',linea:lin,nombre:label}),
 onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:lin}});},
 afterAdd:label=>{ensureChkValue(document.getElementById('f_pruebas'),label,true,'extra');saveDraft();},
-onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>onLineaChange()});
 }
 function openManageEval(){
 const fixed=[...document.querySelectorAll('#r_pruebas input')].filter(i=>!i.closest('.rextra')).map(i=>({label:i.value,fixed:true}));
-const extra=activeCatalogo().filter(c=>c.tipo==='prueba'&&c.linea==='recepcion').map(c=>({label:c.nombre,fixed:false,cat:c}));
+const extra=activeCatalogo().filter(c=>catTipo(c,'prueba')&&catLinea(c,'recepcion')).map(c=>({label:c.nombre,fixed:false}));
 openManagerModal({title:'Gestionar lista de evaluaciones',subtitle:'Recepción de insumos. Las base son fijas; agrega las tuyas.',placeholder:'Ej. Verificación de peso...',items:fixed.concat(extra),
 catItem:label=>({tipo:'prueba',linea:'recepcion',nombre:label}),
 onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'prueba',nombre:label,linea:'recepcion'}});},
 afterAdd:label=>{ensureChkValue(document.getElementById('r_pruebas'),label,true,'rextra');},
-onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>renderEvalExtras()});
 }
 function openManageInsumos(){
-const extra=activeCatalogo().filter(c=>c.tipo==='insumo').map(c=>({label:c.nombre,fixed:false,cat:c}));
+const extra=activeCatalogo().filter(c=>catTipo(c,'insumo')).map(c=>({label:c.nombre,fixed:false}));
 openManagerModal({title:'Gestionar insumos / tipos',subtitle:'Estos tipos aparecen en cada tarjeta de recepción.',placeholder:'Ej. Tapa plástica...',items:extra,
 catItem:label=>({tipo:'insumo',linea:'',nombre:label}),
 onAdd:async label=>{await apiPost('addCatalog',{data:{tipo:'insumo',linea:'',nombre:label}});},
 afterAdd:label=>{document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));const arr=[...document.querySelectorAll('#rItemsList .riT')];if(arr.length)arr[arr.length-1].value=label;},
-onRemove:it=>{if(it.cat)markRemoved(catKey(it.cat.tipo,it.cat.linea,it.cat.nombre));},
 onRefresh:()=>document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s))});
 }
 function addInsumoRow(material,pct){
@@ -896,8 +891,8 @@ if(!arr.length)c.innerHTML='<span class="hint">Aún no hay observaciones guardad
 }
 function fillItemTipos(sel){
 const cur=sel.value;
-const tips=activeCatalogo().filter(c=>c.tipo==='insumo'&&c.nombre).map(c=>c.nombre);
-sel.innerHTML='<option value="">— Selecciona tipo —</option>'+[...new Set(tips)].map(t=>'<option>'+esc(t)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
+const tips=[...new Set(activeCatalogo().filter(c=>catTipo(c,'insumo')&&c.nombre).map(c=>c.nombre))];
+sel.innerHTML='<option value="">— Selecciona tipo —</option>'+tips.map(t=>'<option>'+esc(t)+'</option>').join('')+'<option value="__MGR__">⚙️ Gestionar lista...</option>';
 sel.value=tips.includes(cur)?cur:'';
 }
 function updRecSum(row){
