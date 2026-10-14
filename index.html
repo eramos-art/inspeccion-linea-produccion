@@ -150,7 +150,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.4</div>
+<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.5</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -372,7 +372,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div><div class="secTitle">⚠️ Hallazgos del período (inspector · qué encontró)</div><div id="hallazgos"></div></div>
 </div></div>
 <div class="card"><h3>🔎 Filtros (para historial, Excel, informe y envío)</h3><div class="body">
-<div class="field" style="margin-bottom:12px;"><label>📅 Navegador de meses — desliza ← → y toca el mes que tu jefa quiera ver</label><div class="monthScroll" id="monthScroll"></div></div>
+<div class="field" style="margin-bottom:12px;"><label>📅 Navegador de meses — desliza ← → y toca un mes para filtrar todo el panel</label><div class="monthScroll" id="monthScroll"></div></div>
 <div class="filters">
 <div class="field"><label>Código</label><input id="h_codigo" placeholder="Ej. SOLRAP001"></div>
 <div class="field"><label>Línea</label><select id="h_linea"><option value="">Todas</option><option>Prensado de tubos de abasto</option><option>Anillos de cera</option><option>Habilitación de productos</option></select></div>
@@ -418,7 +418,7 @@ let _tt;function toast(m){const t=document.getElementById('toast');t.textContent
 function openModal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modalBg').classList.add('show');}
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Observado'))return'OBSERVADO';return'CONFORME';}
-/* ===== v6.3: CATÁLOGO LOCAL-FIRST ===== */
+/* ===== CATÁLOGO LOCAL-FIRST ===== */
 const CAT_LOCAL_KEY='sole_cat_local_v1';
 const CAT_QUEUE_KEY='sole_cat_queue_v1';
 function catKey(t,l,n){return(t+'|'+(l||'')+'|'+n).trim().toLowerCase();}
@@ -1187,7 +1187,17 @@ let items=[];
 docs.forEach(d=>(d.defectos||[]).forEach(x=>items.push({f:d.fecha,cod:x.codigo||d.codigo,ins:d.inspector,t:x.tipo,desc:x.descripcion})));
 if(!items.length){el.innerHTML='<div class="findOk">✅ Sin hallazgos en el período filtrado — todo conforme.</div>';return;}
 items.sort((a,b)=>(b.f||'').localeCompare(a.f||''));
-el.innerHTML=items.slice(0,40).map(i=>'<div class="findItem">⚠️ <b>'+esc(i.f)+'</b> · '+esc(i.cod)+' · Inspector '+esc(i.ins)+' — <b style="color:var(--bad)">['+esc(i.t)+']</b> '+esc(i.desc)+'</div>').join('')+(items.length>40?'<div class="hint">… y '+(items.length-40)+' hallazgos más. Usa los filtros para acotar.</div>':'');
+const PREV=3,MAX=40;
+const itemHtml=i=>'<div class="findItem">⚠️ <b>'+esc(i.f)+'</b> · '+esc(i.cod)+' · Inspector '+esc(i.ins)+' — <b style="color:var(--bad)">['+esc(i.t)+']</b> '+esc(i.desc)+'</div>';
+const vis=items.slice(0,MAX);
+if(vis.length<=PREV){el.innerHTML=vis.map(itemHtml).join('');return;}
+el.innerHTML='<div id="hallPrev">'+vis.slice(0,PREV).map(itemHtml).join('')+'</div><div id="hallFull" style="display:none;">'+vis.slice(PREV).map(itemHtml).join('')+'</div>'+(items.length>MAX?'<div class="hint">… y '+(items.length-MAX)+' hallazgos más. Usa los filtros para acotar.</div>':'')+'<button class="btn btn-ghost btn-sm" id="hallBtn" style="width:100%;margin-top:6px;" onclick="toggleHallazgos('+vis.length+')">▼ Ver todos los hallazgos ('+vis.length+')</button>';
+}
+function toggleHallazgos(n){
+const full=document.getElementById('hallFull'),btn=document.getElementById('hallBtn');
+if(!full)return;
+if(full.style.display==='none'){full.style.display='block';btn.textContent='▲ Mostrar menos';}
+else{full.style.display='none';btn.textContent='▼ Ver todos los hallazgos ('+n+')';}
 }
 function pedirEmails(fecha,insp,recs){
 window._pendEnvio={fecha:fecha,insp:insp,recs:recs};
