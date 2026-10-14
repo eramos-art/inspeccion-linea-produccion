@@ -150,7 +150,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.5</div>
+<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.6</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -337,9 +337,9 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 </div>
 <div class="row" style="margin-top:10px;"><button class="btn btn-ghost" onclick="limpiarFiltrosRec()">🧹 Limpiar filtros</button></div>
 </div></div>
-<div class="card"><h3>📋 Recepciones registradas</h3><div class="body" style="overflow:auto;">
+<div class="card"><h3>📋 Recepciones registradas</h3><div class="body" style="overflow:auto;"><div class="row" id="recScopeBar" style="align-items:center;margin-bottom:8px;"></div>
 <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>OC / Guía</th><th>Dictamen</th><th></th></tr></thead><tbody id="recBody"></tbody></table>
-<div id="recEmpty" class="empty">Aún no hay recepciones registradas.</div>
+<button class="btn btn-outline" id="recMore" style="display:none;width:100%;margin-top:8px;" onclick="moreRecRows()">▼ Ver más recepciones</button><div id="recEmpty" class="empty">Aún no hay recepciones registradas.</div>
 </div></div>
 <div class="save-bar">
 <button class="btn btn-ghost" onclick="descartarBorradorRec()">🗑 Empezar de cero</button>
@@ -391,9 +391,9 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 </div>
 <div class="hint">💡 ¿Se olvidaron del reporte de un día? Filtra por fecha, marca ☑ todas y toca "Enviar seleccionadas".</div>
 </div></div>
-<div class="card"><h3>📑 Registros de inspección</h3><div class="body" style="overflow:auto;">
+<div class="card"><h3>📑 Registros de inspección</h3><div class="body" style="overflow:auto;"><div class="row" id="histScopeBar" style="align-items:center;margin-bottom:8px;"></div>
 <table><thead><tr><th style="width:34px;text-align:center;"><input type="checkbox" id="selAll" onchange="toggleSelAll(this)"></th><th>Fecha</th><th>Línea</th><th>Código</th><th>Inspector</th><th>Duración</th><th>Incid.</th><th></th></tr></thead><tbody id="histBody"></tbody></table>
-<div id="histEmpty" class="empty" style="display:none;">Aún no hay inspecciones registradas.</div>
+<button class="btn btn-outline" id="histMore" style="display:none;width:100%;margin-top:8px;" onclick="moreHistRows()">▼ Ver más registros</button><div id="histEmpty" class="empty" style="display:none;">Aún no hay inspecciones registradas.</div>
 </div></div>
 </div>
 </div>
@@ -1084,7 +1084,7 @@ const data={fecha:fecha,tipoIngreso:v('r_tipo'),proveedor:prov,inspector:insp,oc
 await apiPost('addRec',{data:data});
 localStorage.removeItem(DRAFT_REC_KEY);
 document.getElementById('draftBarR').style.display='none';
-toast('Recepción guardada correctamente ✓');
+toast('Recepción guardada correctly ✓'.replace('correctly','correctamente'));
 resetRecForm();
 await cargarDatos(true);
 }catch(err){toast('Error al guardar: '+err.message);}
@@ -1108,17 +1108,33 @@ document.getElementById('st_cod').textContent=kp.tot;
 document.getElementById('st_horas').textContent=fmtDur(docs.reduce((a,d)=>a+(d.horasHombre||0),0));
 document.getElementById('st_inc').textContent=docs.reduce((a,d)=>a+((d.defectos||[]).length),0);
 buildMonthChips();
-const tb=document.getElementById('histBody');tb.innerHTML='';
-docs.forEach(d=>{
-const tr=document.createElement('tr');
-tr.innerHTML='<td style="text-align:center;"><input type="checkbox" class="selRow" value="'+esc(d.id)+'"></td><td>'+esc(d.fecha)+'</td><td>'+esc(d.linea)+'</td><td>'+esc(d.codigo)+'</td><td>'+esc(d.inspector)+'</td><td>'+fmtDur(d.horasHombre)+'</td><td>'+((d.defectos||[]).length||'')+'</td><td><button class="viewbtn" onclick="verDoc(\''+d.id+'\')">Ver</button><button class="delbtn" onclick="delDoc(\''+d.id+'\')">🗑</button></td>';
-tb.appendChild(tr);});
-const he=document.getElementById('histEmpty');
-he.style.display=docs.length?'none':'block';
-if(!docs.length)he.textContent=allDocs.length?'Sin resultados en este período.':'Aún no hay inspecciones registradas.';
+window._histDocs=docs;
+const hoyD=new Date().toISOString().slice(0,10);
+if(!window._histScope)window._histScope='hoy';
+window._histVis=(window._histScope==='hoy')?docs.filter(d=>d.fecha===hoyD):docs;
+renderHistRows(window._histLim||12);
 renderPanel(docs);
 }
 function toggleSelAll(el){document.querySelectorAll('.selRow').forEach(c=>c.checked=el.checked);}
+function renderHistRows(n){
+window._histLim=n;
+const tb=document.getElementById('histBody');if(!tb)return;tb.innerHTML='';
+const vis=window._histVis||[];
+const lim=Math.min(n,vis.length);
+vis.slice(0,lim).forEach(d=>{
+const tr=document.createElement('tr');
+tr.innerHTML='<td style="text-align:center;"><input type="checkbox" class="selRow" value="'+esc(d.id)+'"></td><td>'+esc(d.fecha)+'</td><td>'+esc(d.linea)+'</td><td>'+esc(d.codigo)+'</td><td>'+esc(d.inspector)+'</td><td>'+fmtDur(d.horasHombre)+'</td><td>'+((d.defectos||[]).length||'')+'</td><td><button class="viewbtn" onclick="verDoc(\''+d.id+'\')">Ver</button><button class="delbtn" onclick="delDoc(\''+d.id+'\')">🗑</button></td>';
+tb.appendChild(tr);});
+const bar=document.getElementById('histScopeBar');
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._histScope==='hoy'?'solo HOY':'período filtrado'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setHistScope(\''+(window._histScope==='hoy'?'todo':'hoy')+'\')">'+(window._histScope==='hoy'?'📅 Ver días anteriores / todo':'📍 Ver solo HOY')+'</button>';
+const more=document.getElementById('histMore');
+if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más registros ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
+const he=document.getElementById('histEmpty');
+he.style.display=vis.length?'none':'block';
+if(!vis.length)he.textContent=allDocs.length?'Sin registros en este alcance — usa el botón de arriba para ver más.':'Aún no hay inspecciones registradas.';
+}
+function setHistScope(s){window._histScope=s;window._histLim=12;renderHistory();}
+function moreHistRows(){renderHistRows((window._histLim||12)+12);}
 function limpiarFiltros(){['h_codigo','h_desde','h_hasta','h_busca'].forEach(id=>document.getElementById(id).value='');document.getElementById('h_linea').value='';renderHistory();}
 function limpiarFiltrosRec(){['r_f_proveedor','r_f_desde','r_f_hasta'].forEach(id=>document.getElementById(id).value='');document.getElementById('r_f_dictamen').value='';renderRecepciones();}
 function renderRecepciones(){
@@ -1128,14 +1144,30 @@ if(q&&!(r.proveedor||'').toLowerCase().includes(q))return false;
 if(dic&&r.dictamen!==dic)return false;
 if(de&&r.fecha&&r.fecha<de)return false;
 if(ha&&r.fecha&&r.fecha>ha)return false;return true;});
-const tb=document.getElementById('recBody');tb.innerHTML='';
-list.forEach(r=>{
+window._recList=list;
+const hoyR=new Date().toISOString().slice(0,10);
+if(!window._recScope)window._recScope='hoy';
+window._recVis=(window._recScope==='hoy')?list.filter(r=>r.fecha===hoyR):list;
+renderRecRows(window._recLim||12);
+}
+function renderRecRows(n){
+window._recLim=n;
+const tb=document.getElementById('recBody');if(!tb)return;tb.innerHTML='';
+const vis=window._recVis||[];
+const lim=Math.min(n,vis.length);
+vis.slice(0,lim).forEach(r=>{
 const cls=r.dictamen==='CONFORME'?'background:#e6f5ec;color:var(--ok)':r.dictamen==='OBSERVADO'?'background:#fff3e0;color:var(--warn)':'background:#fdeaea;color:var(--bad)';
 const tr=document.createElement('tr');
 tr.innerHTML='<td>'+esc(r.fecha)+'</td><td>'+esc(r.proveedor)+'</td><td>'+esc(r.oc)+'<br>'+esc(r.guia)+'</td><td><span class="tag" style="'+cls+'">'+esc(r.dictamen)+'</span></td><td><button class="viewbtn" onclick="verRec(\''+r.id+'\')">Ver</button><button class="delbtn" onclick="delRec(\''+r.id+'\')">🗑</button></td>';
 tb.appendChild(tr);});
-document.getElementById('recEmpty').style.display=list.length?'none':'block';
+const bar=document.getElementById('recScopeBar');
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' recepciones':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recScope==='hoy'?'solo HOY':'todo'):'Sin recepciones en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecScope(\''+(window._recScope==='hoy'?'todo':'hoy')+'\')">'+(window._recScope==='hoy'?'📅 Ver todas':'📍 Ver solo HOY')+'</button>';
+const more=document.getElementById('recMore');
+if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más recepciones ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
+document.getElementById('recEmpty').style.display=vis.length?'none':'block';
 }
+function setRecScope(s){window._recScope=s;window._recLim=12;renderRecepciones();}
+function moreRecRows(){renderRecRows((window._recLim||12)+12);}
 function renderBannerInforme(){
 const hoy=new Date().toISOString().slice(0,10);
 const e=allEnvios.find(x=>x.fecha===hoy);
