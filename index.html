@@ -22,6 +22,7 @@
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @keyframes pulse2{0%,100%{box-shadow:0 0 0 0 rgba(0,140,221,.5)}50%{box-shadow:0 0 0 6px rgba(0,140,221,0)}}
+@keyframes fingerDown{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
 .brand{font-size:22px;font-weight:800}.brand small{display:block;font-weight:400;font-size:10px;opacity:.65;letter-spacing:1.5px;margin-top:2px}
 .gerencia{margin-top:16px;font-weight:700;font-size:14px}.repname{font-size:11.5px;opacity:.85;margin-top:3px}
 .relojPill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:22px;padding:7px 16px;margin-top:12px;font-size:17px;font-weight:800;letter-spacing:1px}
@@ -30,7 +31,7 @@
 .tab{flex:1;text-align:center;padding:10px 4px;border-radius:9px;font-weight:700;font-size:12px;color:var(--navy);cursor:pointer;user-select:none}
 .tab.active{background:var(--accent);color:#fff}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden;animation:fadeUp .4s ease both}
-.card h3{margin:0;background:var(--navy2);color:#fff;padding:11px 16px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.card h3{margin:0;background:var(--navy2);color:#fff;padding:11px 16px;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card .body{padding:16px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.grid2{grid-template-columns:1fr}}
@@ -51,11 +52,13 @@ textarea{resize:vertical;min-height:54px}.field{margin-bottom:11px}
 .btn-sm{padding:7px 12px;font-size:12px}
 .nowBtn{padding:9px 12px;font-size:11px;border-radius:9px;border:1.5px solid var(--accent);background:var(--card);color:var(--accent);font-weight:800;cursor:pointer;white-space:nowrap}
 .nowBtn:active{background:var(--accent);color:#fff}
+.finger{display:inline-block;font-size:22px;animation:fingerDown 1s ease-in-out infinite;vertical-align:middle}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .thumb{position:relative;width:84px;height:84px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:#e4e9ef}
 .thumb img,.thumb iframe{width:100%;height:100%;object-fit:cover;border:none;display:block}
-.thumb .x{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:19px;height:19px;font-size:12px;cursor:pointer;z-index:2}
+.thumb .x{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:19px;height:19px;font-size:12px;cursor:pointer;z-index:3}
+.thumb .pend{position:absolute;left:0;right:0;bottom:0;background:rgba(2,59,92,.85);color:#fff;font-size:9px;font-weight:800;text-align:center;padding:2px 0;z-index:2}
 canvas{width:100%;height:170px;border:1px dashed var(--line);border-radius:9px;background:#fff;touch-action:none}
 canvas#chDias,canvas#chRing{background:var(--card);border:none;height:auto}
 .save-bar{position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px;display:flex;gap:10px}
@@ -150,12 +153,12 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección de Línea de Producción · Recepción de Insumos · v6.6</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v6.9</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
-<div class="tab active" data-tab="nueva">📋 Inspección</div>
-<div class="tab" data-tab="recepcion">📥 Recepción insumos</div>
+<div class="tab active" data-tab="nueva">🏭 Producción</div>
+<div class="tab" data-tab="recepcion">📥 Nacionales</div>
 <div class="tab" data-tab="historial">📊 Historial</div>
 </div>
 
@@ -168,6 +171,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="hint" id="draftInfo" style="text-align:center;margin:0 0 12px;">📝 Guardado automático activo: nunca pierdes lo que escribes</div>
 <div class="card"><h3>👤 Datos generales</h3><div class="body"><div class="grid2">
 <div class="field"><label>Fecha</label><input type="date" id="f_fecha"></div>
+<div class="field"><label>⏱ Hora de inicio <span class="finger">👇</span></label><div style="display:flex;gap:6px;"><input type="time" id="f_hini" style="flex:1;"><button type="button" class="nowBtn" onclick="setNow('f_hini')">⏰ AHORA</button></div><div class="hint">👆 Toca AHORA al comenzar la inspección.</div></div>
 <div class="field"><label>Línea de producción</label><select id="f_linea" onchange="onLineaSelChange()"><option>Prensado de tubos de abasto</option><option>Anillos de cera</option><option>Habilitación de productos</option><option value="__MGR__">⚙️ Gestionar lista...</option></select></div>
 <div class="field" id="fw_codigo"><label>Código de producto</label><input id="f_codigo" class="upper" placeholder="Ej. SOLRAP001" oninput="this.value=this.value.toUpperCase()"></div>
 <div class="field" id="fw_lote"><label>Lote de producción</label><input id="f_lote" placeholder="Ej. L-2309"></div>
@@ -236,7 +240,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <button type="button" class="btn btn-accent" onclick="document.getElementById('f_video').click()">🎥 Grabar video</button>
 <button type="button" class="btn btn-ghost" onclick="document.getElementById('f_galeria').click()">🖼️ Galería</button>
 </div>
-<div class="hint">Fotos generales del registro. Para evidencia de un código o defecto específico, usa el 📷 dentro de su tarjeta.</div>
+<div class="hint">Las fotos se ven al instante y suben en segundo plano con reintentos automáticos. Para evidencia de un código o defecto, usa el 📷 dentro de su tarjeta.</div>
 <input type="file" id="f_foto" accept="image/*" capture="environment" style="display:none;">
 <input type="file" id="f_video" accept="video/*" capture="environment" style="display:none;">
 <input type="file" id="f_galeria" accept="image/*,video/*" multiple style="display:none;">
@@ -246,12 +250,8 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <textarea id="f_observaciones" style="min-height:72px;" placeholder="Escribe con tus palabras lo ocurrido. Ej.: En habilitación de productos con suciedad, se encontró en el pre-habilitado / almacén que despacha..."></textarea>
 <div class="hint">Aparece en el historial, el PDF y el correo.</div>
 </div></div>
-<div class="card"><h3>⏱ Horario de la inspección</h3><div class="body">
-<div class="grid2">
-<div class="field"><label>Hora de inicio</label><div style="display:flex;gap:6px;"><input type="time" id="f_hini" style="flex:1;"><button type="button" class="nowBtn" onclick="setNow('f_hini')">⏰ AHORA</button></div></div>
-<div class="field"><label>Hora de fin</label><div style="display:flex;gap:6px;"><input type="time" id="f_hfin" style="flex:1;"><button type="button" class="nowBtn" onclick="setNow('f_hfin')">⏰ AHORA</button></div></div>
-</div>
-<div class="hint">⏰ Al terminar la inspección, toca "AHORA" en Hora de fin — no se te pasará.</div>
+<div class="card" style="border-left:5px solid var(--warn);"><h3>⏱ Cierre de la inspección <span class="finger">👇</span> no olvides registrar la hora</h3><div class="body">
+<div class="field"><label>Hora de fin <span class="finger">👇</span></label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="f_hfin" style="flex:1;"><button type="button" class="nowBtn" onclick="setNow('f_hfin')">⏰ AHORA</button></div><div class="hint">👆 Toca <b>AHORA</b> al terminar: el tiempo invertido queda registrado exacto.</div></div>
 </div></div>
 <div class="card"><h3>✍️ Firma del encargado</h3><div class="body">
 <canvas id="sigPad"></canvas>
@@ -270,9 +270,11 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <button class="btn btn-ghost" onclick="descartarBorradorRec()">🗑 Empezar de cero</button>
 </div></div>
 <div class="hint" id="draftRecInfo" style="text-align:center;margin:0 0 12px;">📝 Guardado automático activo</div>
-<div class="card"><h3>📦 Datos de la recepción</h3><div class="body"><div class="grid2">
+<div class="card"><h3>📦 Datos del producto nacional</h3><div class="body"><div class="grid2">
 <div class="field"><label>Fecha de recepción</label><input type="date" id="r_fecha"></div>
+<div class="field"><label>⏱ Hora de inicio del control <span class="finger">👇</span></label><div style="display:flex;gap:6px;"><input type="time" id="r_hini" style="flex:1;"><button type="button" class="nowBtn" onclick="setNowRec('r_hini')">⏰ AHORA</button></div><div class="hint">👆 Toca AHORA al comenzar — con un toque queda registrada.</div></div>
 <div class="field"><label>Tipo de ingreso</label><select id="r_tipo" onchange="saveDraftRec()"><option>Orden de compra (insumo / materia prima)</option><option>Muestra de proveedor</option><option>Prototipo</option><option>Compra local</option></select></div>
+<div class="field"></div>
 <div class="field"><label>Proveedor</label><input id="r_proveedor" class="upper" placeholder="NOMBRE DEL PROVEEDOR" oninput="this.value=this.value.toUpperCase()"></div>
 <div class="field"><label>Inspector responsable</label><input id="r_inspector" class="upper" placeholder="NOMBRE DEL INSPECTOR" oninput="this.value=this.value.toUpperCase()"></div>
 <div class="field"><label>N° Orden de compra</label><input id="r_oc" placeholder="Ej. OC-00123"></div>
@@ -323,6 +325,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <button type="button" class="btn btn-accent" onclick="document.getElementById('r_video').click()">🎥 Video</button>
 <button type="button" class="btn btn-ghost" onclick="document.getElementById('r_galeria').click()">🖼️ Galería</button>
 </div>
+<div class="hint">Las fotos se ven al instante y suben en segundo plano con reintentos automáticos.</div>
 <input type="file" id="r_foto" accept="image/*" capture="environment" style="display:none;">
 <input type="file" id="r_video" accept="video/*" capture="environment" style="display:none;">
 <input type="file" id="r_galeria" accept="image/*,video/*" multiple style="display:none;">
@@ -337,9 +340,12 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 </div>
 <div class="row" style="margin-top:10px;"><button class="btn btn-ghost" onclick="limpiarFiltrosRec()">🧹 Limpiar filtros</button></div>
 </div></div>
-<div class="card"><h3>📋 Recepciones registradas</h3><div class="body" style="overflow:auto;"><div class="row" id="recScopeBar" style="align-items:center;margin-bottom:8px;"></div>
+<div class="card"><h3>📋 Nacionales registradas</h3><div class="body" style="overflow:auto;"><div class="row" id="recScopeBar" style="align-items:center;margin-bottom:8px;"></div>
 <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>OC / Guía</th><th>Dictamen</th><th></th></tr></thead><tbody id="recBody"></tbody></table>
-<button class="btn btn-outline" id="recMore" style="display:none;width:100%;margin-top:8px;" onclick="moreRecRows()">▼ Ver más recepciones</button><div id="recEmpty" class="empty">Aún no hay recepciones registradas.</div>
+<button class="btn btn-outline" id="recMore" style="display:none;width:100%;margin-top:8px;" onclick="moreRecRows()">▼ Ver más registros</button><div id="recEmpty" class="empty">Aún no hay registros.</div>
+</div></div>
+<div class="card" style="border-left:5px solid var(--warn);"><h3>⏱ Cierre del control <span class="finger">👇</span> no olvides registrar la hora</h3><div class="body">
+<div class="field"><label>Hora de fin de la inspección <span class="finger">👇</span></label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="r_hfin" style="flex:1;"><button type="button" class="nowBtn" onclick="setNowRec('r_hfin')">⏰ AHORA</button></div><div class="hint">👆 Toca <b>AHORA</b> al terminar: el tiempo de inspección queda registrado exacto.</div></div>
 </div></div>
 <div class="save-bar">
 <button class="btn btn-ghost" onclick="descartarBorradorRec()">🗑 Empezar de cero</button>
@@ -418,6 +424,7 @@ let _tt;function toast(m){const t=document.getElementById('toast');t.textContent
 function openModal(h){document.getElementById('modalBody').innerHTML=h;document.getElementById('modalBg').classList.add('show');}
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Observado'))return'OBSERVADO';return'CONFORME';}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 /* ===== CATÁLOGO LOCAL-FIRST ===== */
 const CAT_LOCAL_KEY='sole_cat_local_v1';
 const CAT_QUEUE_KEY='sole_cat_queue_v1';
@@ -446,7 +453,6 @@ async function syncQueue(){
   }
   lsSet(CAT_QUEUE_KEY,restante);
   _syncBusy=false;
-  if(restante.length<q.length&&window._mgr)toast('🔄 Sincronizado con la nube ✓ (visible para todo el equipo)');
 }
 function allCatalogo(){
   const loc=getLocalCat().filter(l=>l.nombre&&String(l.nombre).trim());
@@ -457,11 +463,85 @@ function catTipo(c,t){return String(c.tipo||'').trim().toLowerCase()===t;}
 function catLinea(c,l){return String(c.linea||'').trim().toLowerCase()===String(l||'').trim().toLowerCase();}
 function kpiCodigos(list){let tot=0,conf=0;(list||[]).forEach(d=>{const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){cs.forEach(c=>{tot++;if((c.estado||'Conforme')==='Conforme')conf++;});}else{tot++;if(!(d.defectos||[]).length)conf++;}});return{tot:tot,conf:conf};}
 function docWorst(d){const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){if(cs.some(c=>c.estado==='Rechazado'))return'Rechazado';if(cs.some(c=>c.estado==='Observado'))return'Observado';return'Conforme';}const df=d.defectos||[];if(df.some(x=>x.tipo==='Funcional'))return'Rechazado';if(df.length)return'Observado';return'Conforme';}
+/* ===== MEDIA LOCAL-FIRST ===== */
+const MQ_LS_KEY='sole_media_queue_v1';
+window._memQueue=[];
+function mqPersist(entry){try{const q=lsGet(MQ_LS_KEY);if(!q.some(x=>x.key===entry.key)){q.push({key:entry.key,filename:entry.filename,mimeType:entry.mimeType,data:entry.data});lsSet(MQ_LS_KEY,q);}}catch(e){}}
+function mqLoadPersisted(){try{const q=lsGet(MQ_LS_KEY);if(q.length){q.forEach(x=>{if(!window._memQueue.some(e=>e.key===x.key))window._memQueue.push(x);});lsSet(MQ_LS_KEY,[]);}}catch(e){}}
+function cleanMedia(m){return{url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type};}
+function findMediaHolder(key){
+let m=pendingMedia.find(x=>x.key===key);if(m)return{m:m,list:pendingMedia,cid:'mediaThumbs'};
+m=pendingMediaRec.find(x=>x.key===key);if(m)return{m:m,list:pendingMediaRec,cid:'recThumbs'};
+for(const r of document.querySelectorAll('#codigosList .defRow')){m=(r._media||[]).find(x=>x.key===key);if(m)return{m:m,list:r._media,cid:(r.querySelector('.thumbs')||{}).id};}
+for(const r of document.querySelectorAll('#defList .defRow')){m=(r._media||[]).find(x=>x.key===key);if(m)return{m:m,list:r._media,cid:(r.querySelector('.thumbs')||{}).id};}
+for(const r of document.querySelectorAll('#rItemsList .defRow')){m=(r._media||[]).find(x=>x.key===key);if(m)return{m:m,list:r._media,cid:(r.querySelector('.thumbs')||{}).id};}
+return null;
+}
+function applyMediaUpload(key,res){
+const h=findMediaHolder(key);if(!h)return;
+h.m.pending=false;h.m.url=res.url;h.m.thumb=res.thumb;h.m.driveId=res.id;
+if(h.cid)renderThumbsGen(h.list,h.cid);
+}
+let _mqRunning=false;
+async function mqRun(){
+if(_mqRunning||!navigator.onLine)return;
+_mqRunning=true;
+mqLoadPersisted();
+let had=window._memQueue.length;
+const still=[];
+for(const it of window._memQueue){
+try{
+const res=await apiPost('uploadFile',{filename:it.filename,mimeType:it.mimeType,data:it.data});
+if(!res||!res.id)throw new Error(res&&res.error||'respuesta inválida');
+applyMediaUpload(it.key,res);
+}catch(e){still.push(it);mqPersist(it);}
+}
+window._memQueue=still;
+_mqRunning=false;
+if(had&&!window._memQueue.length)toast('📷 Fotos sincronizadas ✓');
+}
+async function addFiles(list,cid,files){
+for(const f of files){
+if(f.size>26214400){toast('Archivo de '+Math.round(f.size/1048576)+' MB demasiado grande. Máximo 25 MB.');continue;}
+try{
+const c=await comprimirImagen(f);
+const data=c?c.dataUrl:await leerArchivo(f);
+const mime=c?c.mime:(f.type||'video/mp4');
+const name=c?c.name:(f.name||('archivo_'+Date.now()));
+const key='m'+Date.now()+Math.random().toString(36).slice(2,7);
+list.push({key:key,pending:true,local:c?c.dataUrl:null,type:mime});
+renderThumbsGen(list,cid);
+window._memQueue.push({key:key,filename:name,mimeType:mime,data:data});
+saveDraft();saveDraftRec();
+mqRun();
+}catch(err){toast('No se pudo procesar el archivo: '+err.message);}
+}
+}
+async function flushMedia(lists){
+const deadline=Date.now()+25000;
+const anyPend=()=>lists.some(L=>(L||[]).some(m=>m.pending));
+if(!anyPend())return;
+toast('⏳ Esperando a que suban las fotos...');
+while(anyPend()&&Date.now()<deadline){await mqRun();if(!anyPend())break;await sleep(700);}
+const pend=lists.reduce((a,L)=>a+((L||[]).filter(m=>m.pending).length),0);
+if(pend)toast('⚠ '+pend+' foto(s) no subieron aún; el registro se guarda y se reintentan solas.');
+}
+function mediaHtml(list){
+let h='';(list||[]).forEach(m=>{const id=m.driveId||'';
+if(m.type&&m.type.startsWith('video')){h+='<div class="thumb"><iframe src="https://drive.google.com/file/d/'+id+'/preview" allow="autoplay"></iframe></div>';}
+else{const full=m.url||('https://drive.google.com/file/d/'+id+'/view');const src=m.thumb||('https://drive.google.com/thumbnail?id='+id+'&sz=w400');
+h+='<div class="thumb"><img src="'+esc(src)+'" loading="lazy" style="cursor:pointer" onclick="window.open(\''+esc(full)+'\',\'_blank\')" onerror="if(!this.dataset.f1){this.dataset.f1=1;this.src=\'https://lh3.googleusercontent.com/d/'+esc(id)+'=w400\';}else{this.onerror=null;this.src=\'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%23dfe7ee%22/%3E%3C/svg%3E\';}"></div>';}});
+return h?'<div class="thumbs">'+h+'</div>':'';
+}
 async function cargarDatos(silencioso){
 if(cargando)return;cargando=true;
-syncQueue();
+syncQueue();mqRun();
 try{
 const j=await apiGet();
+const sig=[(j.inspecciones||[]).length,(j.recepciones||[]).length,(j.catalogo||[]).length,(j.envios||[]).length].join('|');
+const sinCambios=(silencioso&&sig===window._lastSig);
+window._lastSig=sig;
+if(!sinCambios){
 allDocs=(j.inspecciones||[]).map(r=>({id:r.ID,fecha:fmtFecha(r.Fecha),linea:r.Linea,codigo:r.Codigo,lote:r.Lote,muestra:Number(r.Muestra)||0,horaInicio:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),horasHombre:Number(r.HorasHombre)||0,inspector:r.Inspector,encargado:r.Encargado,pruebas:parseJ(r.Pruebas,[]),defectos:parseJ(r.Defectos,[]),detalle:parseJ(r.Detalle,null),media:parseJ(r.Fotos,[]),firma:r.Firma||null,observaciones:r.Observaciones||''})).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
 catalogo=(j.catalogo||[]).map(r=>({tipo:r.Tipo,linea:r.Linea,nombre:r.Nombre,defTipo:r.DefTipo}));
 allRecs=(j.recepciones||[]).map(r=>({id:r.ID,fecha:fmtFecha(r.Fecha),tipoIngreso:r.TipoIngreso,proveedor:r.Proveedor,inspector:r.Inspector,oc:r.OC,guia:r.Guia,factura:r.Factura,ficha:r.Ficha,horaInicio:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),tiempoHoras:Number(r.TiempoHoras)||0,items:parseJ(r.Items,[]),pruebas:parseJ(r.Pruebas,[]),resultado:r.Resultado,dictamen:dictamenDe(parseJ(r.Items,[])),observaciones:r.Observaciones||'',media:parseJ(r.Media,[])})).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
@@ -469,6 +549,7 @@ allEnvios=(j.envios||[]).map(e=>({fecha:fmtFecha(e.Fecha),enviadoEn:fmtHora(e.En
 document.getElementById('histEmpty').style.display='none';
 fillLineaOptions();renderHistory();renderRecepciones();onLineaChange();renderBannerInforme();pintarObsChips();renderEvalExtras();
 document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));
+}
 }catch(err){
 if(!silencioso)toast('Sin conexión: la app funciona con los datos guardados en este equipo');
 const he=document.getElementById('histEmpty');he.style.display='block';he.textContent='Sin conexión ahora. Tus datos guardados siguen disponibles.';
@@ -516,6 +597,7 @@ d.textContent=now.toLocaleDateString('es-PE',{weekday:'short',day:'2-digit',mont
 setInterval(tickReloj,1000);tickReloj();
 /* ===== Hora AHORA ===== */
 function setNow(id){const d=new Date();document.getElementById(id).value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');saveDraft();toast('⏰ Hora registrada: '+document.getElementById(id).value);}
+function setNowRec(id){const d=new Date();document.getElementById(id).value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');saveDraftRec();toast('⏰ Hora registrada: '+document.getElementById(id).value);}
 /* ===== Navegador de meses ===== */
 const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 function lastDay(k){const y=+k.slice(0,4),m=+k.slice(5,7);const d=new Date(y,m,0);return k+'-'+String(d.getDate()).padStart(2,'0');}
@@ -680,14 +762,14 @@ onRefresh:()=>onLineaChange()});
 function openManageEval(){
 const fixed=[...document.querySelectorAll('#r_pruebas input')].filter(i=>!i.closest('.rextra')).map(i=>({label:i.value,fixed:true}));
 const extra=activeCatalogo().filter(c=>catTipo(c,'prueba')&&catLinea(c,'recepcion')).map(c=>({label:c.nombre,fixed:false}));
-openManagerModal({title:'Gestionar lista de evaluaciones',subtitle:'Recepción de insumos. Las base son fijas; agrega las tuyas.',placeholder:'Ej. Verificación de peso...',items:fixed.concat(extra),
+openManagerModal({title:'Gestionar lista de evaluaciones',subtitle:'Nacionales. Las base son fijas; agrega las tuyas.',placeholder:'Ej. Verificación de peso...',items:fixed.concat(extra),
 catItem:label=>({tipo:'prueba',linea:'recepcion',nombre:label}),
 afterAdd:label=>{ensureChkValue(document.getElementById('r_pruebas'),label,true,'rextra');},
 onRefresh:()=>renderEvalExtras()});
 }
 function openManageInsumos(){
 const extra=activeCatalogo().filter(c=>catTipo(c,'insumo')).map(c=>({label:c.nombre,fixed:false}));
-openManagerModal({title:'Gestionar insumos / tipos',subtitle:'Estos tipos aparecen en cada tarjeta de recepción.',placeholder:'Ej. Tapa plástica...',items:extra,
+openManagerModal({title:'Gestionar insumos / tipos',subtitle:'Estos tipos aparecen en cada tarjeta de Nacionales.',placeholder:'Ej. Tapa plástica...',items:extra,
 catItem:label=>({tipo:'insumo',linea:'',nombre:label}),
 afterAdd:label=>{document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));const arr=[...document.querySelectorAll('#rItemsList .riT')];if(arr.length)arr[arr.length-1].value=label;},
 onRefresh:()=>document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s))});
@@ -716,9 +798,9 @@ row.querySelector('.defHead').addEventListener('click',e=>{if(e.target.closest('
 const estSel=row.querySelector('.codE');
 const applyEst=()=>{row.classList.toggle('est',estSel.value==='Observado');row.classList.toggle('func',estSel.value==='Rechazado');updCodSum(row);};
 estSel.addEventListener('change',applyEst);
-const fb=row.querySelector('.codPhotoBtn'),ff=row.querySelector('.codFile'),thId=row.querySelector('.thumbs').id;
-fb.onclick=()=>ff.click();
-ff.onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const f of files){await subirArchivo(f,row._media,thId);}};
+const thId=row.querySelector('.thumbs').id;
+row.querySelector('.codPhotoBtn').onclick=()=>row.querySelector('.codFile').click();
+row.querySelector('.codFile').onchange=async e=>{const files=[...e.target.files];e.target.value='';await addFiles(row._media,thId,files);};
 row.addEventListener('input',()=>updCodSum(row));
 document.getElementById('codigosList').appendChild(row);
 row.querySelector('.codC').value=codigo||'';row.querySelector('.codL').value=lote||'';
@@ -762,9 +844,8 @@ row.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
 row.querySelector('.defTipo').value=b.dataset.v;
 row.classList.toggle('func',b.dataset.v==='Funcional');row.classList.toggle('est',b.dataset.v!=='Funcional');
 });
-const fb=row.querySelector('.defPhotoBtn'),ff=row.querySelector('.defFile');
-fb.onclick=()=>ff.click();
-ff.onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const f of files){await subirArchivo(f,row._media,thId);}};
+row.querySelector('.defPhotoBtn').onclick=()=>row.querySelector('.defFile').click();
+row.querySelector('.defFile').onchange=async e=>{const files=[...e.target.files];e.target.value='';await addFiles(row._media,thId,files);};
 document.getElementById('defList').appendChild(row);
 renderThumbsGen(row._media,thId);
 defEmpty();
@@ -787,53 +868,36 @@ const cx=cv.getContext('2d');cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);cx.draw
 return{dataUrl:cv.toDataURL('image/jpeg',0.82),mime:'image/jpeg',name:(file.name||'foto_'+Date.now()).replace(/\.[^.]*$/,'')+'.jpg'};
 }catch(e){return null;}
 }
-async function subirArchivo(file,list,thumbId){
-if(file.size>26214400){toast('Archivo de '+Math.round(file.size/1048576)+' MB demasiado grande. Máximo 25 MB.');return;}
-try{
-const c=await comprimirImagen(file);
-let payload;
-if(c){payload={filename:c.name,mimeType:c.mime,data:c.dataUrl};}
-else{payload={filename:file.name,mimeType:file.type||'video/mp4',data:await leerArchivo(file)};}
-toast('⬆ Subiendo '+payload.filename+'...');
-const res=await apiPost('uploadFile',payload);
-list.push({url:res.url,thumb:res.thumb,type:payload.mimeType,driveId:res.id});
-renderThumbsGen(list,thumbId);
-saveDraft();saveDraftRec();
-}catch(err){toast('Error al subir archivo: '+err.message);}
-}
-function makeMediaHandler(list,thumbId){return async function(e){const files=[...e.target.files];e.target.value='';for(const f of files){await subirArchivo(f,list,thumbId);}};}
 function renderThumbsGen(list,containerId){
 const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
-list.forEach((m,i)=>{
+(list||[]).forEach((m,i)=>{
 const d=document.createElement('div');d.className='thumb';
-if(m.type&&m.type.startsWith('video')){d.innerHTML='<iframe src="https://drive.google.com/file/d/'+(m.driveId||'')+'/preview" allow="autoplay"></iframe>';}
-else{
+if(m.type&&m.type.startsWith('video')){
+d.innerHTML=m.pending?'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:26px;">🎥⏳</div><div class="pend">⏳ SUBIENDO...</div>':'<iframe src="https://drive.google.com/file/d/'+(m.driveId||'')+'/preview" allow="autoplay"></iframe>';
+}else{
 const img=document.createElement('img');img.loading='lazy';img.style.cursor='pointer';
+if(m.pending){img.src=m.local||('data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#dfe7ee"/><text x="40" y="48" font-size="26" text-anchor="middle">📷⏳</text></svg>'));}
+else{
 img.src=m.thumb||('https://drive.google.com/thumbnail?id='+(m.driveId||'')+'&sz=w400');
 img.onerror=function(){if(!this.dataset.f1){this.dataset.f1='1';this.src='https://lh3.googleusercontent.com/d/'+(m.driveId||'')+'=w400';}else{this.onerror=null;this.src='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#dfe7ee"/><text x="40" y="48" font-size="28" text-anchor="middle">🖼️</text></svg>');}};
-img.onclick=()=>window.open(m.url||('https://drive.google.com/file/d/'+(m.driveId||'')+'/view'),'_blank');
+}
+img.onclick=()=>{if(m.pending){toast('⏳ Aún subiendo... se abrirá cuando termine');return;}window.open(m.url||('https://drive.google.com/file/d/'+(m.driveId||'')+'/view'),'_blank');};
 d.appendChild(img);
 }
+if(m.pending){const p=document.createElement('div');p.className='pend';p.textContent='⏳ SUBIENDO...';d.appendChild(p);}
 const x=document.createElement('button');x.className='x';x.textContent='✕';
-x.onclick=()=>{list.splice(i,1);renderThumbsGen(list,containerId);};
+x.onclick=()=>{list.splice(i,1);renderThumbsGen(list,containerId);saveDraft();saveDraftRec();};
 d.appendChild(x);c.appendChild(d);
 });
 }
 function renderThumbs(){renderThumbsGen(pendingMedia,'mediaThumbs');}
 function renderRecThumbs(){renderThumbsGen(pendingMediaRec,'recThumbs');}
-function mediaHtml(list){
-let h='';(list||[]).forEach(m=>{const id=m.driveId||'';
-if(m.type&&m.type.startsWith('video')){h+='<div class="thumb"><iframe src="https://drive.google.com/file/d/'+id+'/preview" allow="autoplay"></iframe></div>';}
-else{const full=m.url||('https://drive.google.com/file/d/'+id+'/view');const src=m.thumb||('https://drive.google.com/thumbnail?id='+id+'&sz=w400');
-h+='<div class="thumb"><img src="'+esc(src)+'" loading="lazy" style="cursor:pointer" onclick="window.open(\''+esc(full)+'\',\'_blank\')" onerror="if(!this.dataset.f1){this.dataset.f1=1;this.src=\'https://lh3.googleusercontent.com/d/'+esc(id)+'=w400\';}else{this.onerror=null;this.src=\'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%23dfe7ee%22/%3E%3C/svg%3E\';}"></div>';}});
-return h?'<div class="thumbs">'+h+'</div>':'';
-}
-document.getElementById('f_foto').addEventListener('change',makeMediaHandler(pendingMedia,'mediaThumbs'));
-document.getElementById('f_video').addEventListener('change',makeMediaHandler(pendingMedia,'mediaThumbs'));
-document.getElementById('f_galeria').addEventListener('change',makeMediaHandler(pendingMedia,'mediaThumbs'));
-document.getElementById('r_foto').addEventListener('change',makeMediaHandler(pendingMediaRec,'recThumbs'));
-document.getElementById('r_video').addEventListener('change',makeMediaHandler(pendingMediaRec,'recThumbs'));
-document.getElementById('r_galeria').addEventListener('change',makeMediaHandler(pendingMediaRec,'recThumbs'));
+document.getElementById('f_foto').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMedia,'mediaThumbs',fl);});
+document.getElementById('f_video').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMedia,'mediaThumbs',fl);});
+document.getElementById('f_galeria').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMedia,'mediaThumbs',fl);});
+document.getElementById('r_foto').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaRec,'recThumbs',fl);});
+document.getElementById('r_video').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaRec,'recThumbs',fl);});
+document.getElementById('r_galeria').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaRec,'recThumbs',fl);});
 const sig=document.getElementById('sigPad');
 function fitCanvas(){const r=sig.getBoundingClientRect();if(!r.width)return;sig.width=r.width*2;sig.height=r.height*2;const ctx=sig.getContext('2d');ctx.scale(2,2);ctx.lineWidth=2;ctx.lineCap='round';ctx.strokeStyle='#023B5C';}
 fitCanvas();window.addEventListener('resize',fitCanvas);
@@ -892,7 +956,8 @@ res(r.thumb);
 },'image/png');
 });
 }
-const data={fecha:fecha,linea:linea,codigo:codigo,lote:esHab?[...new Set(codsHab.map(c=>c.lote).filter(Boolean))].join(', '):document.getElementById('f_lote').value.trim(),muestra:esHab?codsHab.reduce((a,c)=>a+c.muestra,0):(Number(document.getElementById('f_muestra').value)||0),horaInicio:hini,horaFin:hfin,horasHombre:horasHombre(hini,hfin),inspector:inspector,encargado:encargado,pruebas:pruebas,defectos:defectos,detalle:detalle,observaciones:document.getElementById('f_observaciones').value.trim(),media:pendingMedia.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),firma:firmaId,creadoEn:new Date().toISOString()};
+await flushMedia([pendingMedia,defectos.map(d=>d.media),codsHab.map(c=>c.media)]);
+const data={fecha:fecha,linea:linea,codigo:codigo,lote:esHab?[...new Set(codsHab.map(c=>c.lote).filter(Boolean))].join(', '):document.getElementById('f_lote').value.trim(),muestra:esHab?codsHab.reduce((a,c)=>a+c.muestra,0):(Number(document.getElementById('f_muestra').value)||0),horaInicio:hini,horaFin:hfin,horasHombre:horasHombre(hini,hfin),inspector:inspector,encargado:encargado,pruebas:pruebas,defectos:defectos.map(d=>({tipo:d.tipo,descripcion:d.descripcion,codigo:d.codigo,media:(d.media||[]).filter(m=>!m.pending).map(cleanMedia)})),detalle:detalle,observaciones:document.getElementById('f_observaciones').value.trim(),media:pendingMedia.filter(m=>!m.pending).map(cleanMedia),firma:firmaId,creadoEn:new Date().toISOString()};
 await apiPost('add',{data:data});
 localStorage.removeItem(DRAFT_KEY);
 document.getElementById('draftBarN').style.display='none';
@@ -1004,9 +1069,8 @@ else{badge.style.display='none';}
 updRecSum(row);
 };
 estSel.addEventListener('change',()=>{applyEstRec();updateDictamenUI();saveDraftRec();});
-const fb=row.querySelector('.riPhotoBtn'),ff=row.querySelector('.riFile');
-fb.onclick=()=>ff.click();
-ff.onchange=async e=>{const files=[...e.target.files];e.target.value='';for(const f of files){await subirArchivo(f,row._media,thId);}};
+row.querySelector('.riPhotoBtn').onclick=()=>row.querySelector('.riFile').click();
+row.querySelector('.riFile').onchange=async e=>{const files=[...e.target.files];e.target.value='';await addFiles(row._media,thId,files);};
 document.getElementById('rItemsList').appendChild(row);
 fillItemTipos(rsel);
 if(tipo)rsel.value=tipo;
@@ -1029,7 +1093,7 @@ if(savingRec)return;
 try{
 const d={
 savedAt:new Date().toLocaleTimeString(),
-fields:['r_fecha','r_tipo','r_proveedor','r_inspector','r_oc','r_guia','r_factura','r_ficha'].reduce((a,id)=>{a[id]=v(id);return a;},{}),
+fields:['r_fecha','r_tipo','r_proveedor','r_inspector','r_oc','r_guia','r_factura','r_ficha','r_hini','r_hfin'].reduce((a,id)=>{a[id]=v(id);return a;},{}),
 pruebas:[...document.querySelectorAll('#r_pruebas input:checked')].map(c=>c.value),
 items:[...document.querySelectorAll('#rItemsList .defRow')].map(r=>({t:r.querySelector('.riT').value,c:r.querySelector('.riC').value,q:r.querySelector('.riQ').value,e:r.querySelector('.riE').value,m:(r._media||[])})),
 resultado:v('r_resultado'),obs:v('r_obs'),obsGuardar:cb('r_obsGuardar'),media:pendingMediaRec
@@ -1055,7 +1119,7 @@ updateDictamenUI();
 }
 function descartarBorradorRec(){if(savingRec)return;localStorage.removeItem(DRAFT_REC_KEY);resetRecForm();toast('Formulario en blanco, listo para empezar 🗑');}
 function resetRecForm(){
-['r_oc','r_guia','r_factura','r_ficha','r_proveedor','r_inspector','r_obs'].forEach(id=>document.getElementById(id).value='');
+['r_oc','r_guia','r_factura','r_ficha','r_proveedor','r_inspector','r_obs','r_hini','r_hfin'].forEach(id=>document.getElementById(id).value='');
 document.getElementById('r_fecha').value=new Date().toISOString().slice(0,10);
 document.getElementById('r_tipo').value='Orden de compra (insumo / materia prima)';
 document.getElementById('r_resultado').value='Ingreso aprobado — todo conforme';
@@ -1078,13 +1142,15 @@ if(faltan.length||!items.length){toast(faltan.length?'Completa fecha, proveedor 
 if(savingRec)return;
 savingRec=true;const bg=document.getElementById('btnGuardarRec');bg.disabled=true;bg.textContent='Guardando...';
 try{
+const hini=v('r_hini'),hfin=v('r_hfin');
 const pruebas=[...document.querySelectorAll('#r_pruebas input:checked')].map(c=>c.value);
 if(cb('r_obsGuardar')){const o=v('r_obs').trim();if(o&&!getObs().includes(o)){const arr=getObs();arr.push(o);localStorage.setItem(OBS_KEY,JSON.stringify(arr));pintarObsChips();}}
-const data={fecha:fecha,tipoIngreso:v('r_tipo'),proveedor:prov,inspector:insp,oc:v('r_oc').trim(),guia:v('r_guia').trim(),factura:v('r_factura').trim(),ficha:v('r_ficha').trim(),items:items,pruebas:pruebas,resultado:v('r_resultado'),observaciones:v('r_obs').trim(),media:pendingMediaRec.map(m=>({url:m.url,thumb:m.thumb,driveId:m.driveId,type:m.type})),creadoEn:new Date().toISOString()};
+await flushMedia([pendingMediaRec,items.map(i=>i.media)]);
+const data={fecha:fecha,tipoIngreso:v('r_tipo'),proveedor:prov,inspector:insp,oc:v('r_oc').trim(),guia:v('r_guia').trim(),factura:v('r_factura').trim(),ficha:v('r_ficha').trim(),horaInicio:hini,horaFin:hfin,tiempoHoras:horasHombre(hini,hfin),items:items.map(i=>({tipo:i.tipo,codigo:i.codigo,cantidad:i.cantidad,estado:i.estado,media:(i.media||[]).filter(m=>!m.pending).map(cleanMedia)})),pruebas:pruebas,resultado:v('r_resultado'),observaciones:v('r_obs').trim(),media:pendingMediaRec.filter(m=>!m.pending).map(cleanMedia),creadoEn:new Date().toISOString()};
 await apiPost('addRec',{data:data});
 localStorage.removeItem(DRAFT_REC_KEY);
 document.getElementById('draftBarR').style.display='none';
-toast('Recepción guardada correctly ✓'.replace('correctly','correctamente'));
+toast('Recepción guardada correctamente ✓');
 resetRecForm();
 await cargarDatos(true);
 }catch(err){toast('Error al guardar: '+err.message);}
@@ -1161,9 +1227,9 @@ const tr=document.createElement('tr');
 tr.innerHTML='<td>'+esc(r.fecha)+'</td><td>'+esc(r.proveedor)+'</td><td>'+esc(r.oc)+'<br>'+esc(r.guia)+'</td><td><span class="tag" style="'+cls+'">'+esc(r.dictamen)+'</span></td><td><button class="viewbtn" onclick="verRec(\''+r.id+'\')">Ver</button><button class="delbtn" onclick="delRec(\''+r.id+'\')">🗑</button></td>';
 tb.appendChild(tr);});
 const bar=document.getElementById('recScopeBar');
-if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' recepciones':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recScope==='hoy'?'solo HOY':'todo'):'Sin recepciones en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecScope(\''+(window._recScope==='hoy'?'todo':'hoy')+'\')">'+(window._recScope==='hoy'?'📅 Ver todas':'📍 Ver solo HOY')+'</button>';
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recScope==='hoy'?'solo HOY':'todo'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecScope(\''+(window._recScope==='hoy'?'todo':'hoy')+'\')">'+(window._recScope==='hoy'?'📅 Ver todas':'📍 Ver solo HOY')+'</button>';
 const more=document.getElementById('recMore');
-if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más recepciones ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
+if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más registros ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
 document.getElementById('recEmpty').style.display=vis.length?'none':'block';
 }
 function setRecScope(s){window._recScope=s;window._recLim=12;renderRecepciones();}
@@ -1277,7 +1343,7 @@ if(!docs.length&&!allRecs.length){toast('No hay datos para exportar.');return;}
 const wb=XLSX.utils.book_new();
 const iRows=docs.map(d=>({Fecha:d.fecha,Linea:d.linea,Codigo:d.codigo,Lote:d.lote,Muestra:d.muestra,Inicio:d.horaInicio,Fin:d.horaFin,'Minutos':Math.round((d.horasHombre||0)*60),Inspector:d.inspector,Encargado:d.encargado,Pruebas:(d.pruebas||[]).join('; '),'Estados_Codigos':((d.detalle&&d.detalle.codigos)||[]).map(c=>c.codigo+':'+(c.estado||'Conforme')).join('; '),'N_Defectos':(d.defectos||[]).length,Defectos:(d.defectos||[]).map(x=>'['+x.tipo+'] '+x.descripcion+((x.media&&x.media.length)?' 📷'+x.media.length:'')).join(' | '),'Observaciones':d.observaciones||'',Fotos:(d.media||[]).map(m=>m.url).join(' ')}));
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(iRows.length?iRows:[{Sin:'datos'}]),'Inspecciones');
-const rRows=allRecs.map(r=>({Fecha:r.fecha,Tipo:r.tipoIngreso,Proveedor:r.proveedor,Inspector:r.inspector,OC:r.oc,Guia:r.guia,Factura:r.factura,Dictamen:r.dictamen,Decision:r.resultado,Items:(r.items||[]).map(i=>i.codigo+' ('+i.estado+((i.media&&i.media.length)?' 📷'+i.media.length:'')+')').join('; '),'Observaciones':r.observaciones||''}));
+const rRows=allRecs.map(r=>({Fecha:r.fecha,Tipo:r.tipoIngreso,Proveedor:r.proveedor,Inspector:r.inspector,OC:r.oc,Guia:r.guia,Factura:r.factura,Inicio:r.horaInicio,Fin:r.horaFin,'Minutos':Math.round((r.tiempoHoras||0)*60),Dictamen:r.dictamen,Decision:r.resultado,Items:(r.items||[]).map(i=>i.codigo+' ('+i.estado+((i.media&&i.media.length)?' 📷'+i.media.length:'')+')').join('; '),'Observaciones':r.observaciones||''}));
 XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rRows.length?rRows:[{Sin:'datos'}]),'Recepciones');
 XLSX.writeFile(wb,'GrupoSole_Calidad_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
@@ -1343,7 +1409,7 @@ openModal(h);
 function verRec(id){
 const r=allRecs.find(x=>x.id===id);if(!r)return;
 let h='<h4>📥 Recepción '+esc(r.fecha)+'</h4>';
-h+='<p style="font-size:12.5px;line-height:1.7;"><b>Tipo:</b> '+esc(r.tipoIngreso)+'<br><b>Proveedor:</b> '+esc(r.proveedor)+'<br><b>Inspector:</b> '+esc(r.inspector)+'<br><b>OC:</b> '+esc(r.oc)+' · <b>Guía:</b> '+esc(r.guia)+' · <b>Factura:</b> '+esc(r.factura)+'<br><b>Ficha:</b> '+esc(r.ficha)+'</p>';
+h+='<p style="font-size:12.5px;line-height:1.7;"><b>Tipo:</b> '+esc(r.tipoIngreso)+'<br><b>Proveedor:</b> '+esc(r.proveedor)+'<br><b>Inspector:</b> '+esc(r.inspector)+'<br><b>OC:</b> '+esc(r.oc)+' · <b>Guía:</b> '+esc(r.guia)+' · <b>Factura:</b> '+esc(r.factura)+'<br><b>Ficha:</b> '+esc(r.ficha)+'<br><b>Horario:</b> '+esc(r.horaInicio||'—')+' a '+esc(r.horaFin||'—')+(r.tiempoHoras?' ('+fmtDur(r.tiempoHoras)+')':'')+'</p>';
 let itemMedia=[];
 if(r.items&&r.items.length){
 h+='<table style="font-size:12px;"><thead><tr><th>Insumo</th><th>Código</th><th>Cant.</th><th>Estado</th></tr></thead><tbody>';
