@@ -152,7 +152,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v7.8</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v7.9</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -1587,7 +1587,7 @@ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 }
 /* ===== INFORME CORPORATIVO (impresión nativa) ===== */
 /* ===== PLANTILLA CORPORATIVA (estilo informe Word de Jefatura) ===== */
-const REP={navy:'#17365D',line:'#7F8B99',cell:'#C9D2DC',zebra:'#F2F2F2',muted:'#5B6B7B',bad:'#C00000',warn:'#B26B00',ok:'#1E7B3C',ink:'#1A1A1A'};
+const REP={navy:'#4C5F80',line:'#8B99B0',cell:'#C7D0DE',zebra:'#F2F4F8',muted:'#5B6B7B',bad:'#C00000',warn:'#B26B00',ok:'#1E7B3C',ink:'#1A1A1A'};
 function repMedia(list){const out=[];(list||[]).forEach(m=>{if(!m)return;if(typeof m==='string'){out.push({url:m});return;}if(m.url||m.thumb||m.driveId)out.push(m);});return out;}
 function repThumb(m){if(m.thumb)return m.thumb;if(m.driveId)return'https://drive.google.com/thumbnail?id='+m.driveId+'&sz=w600';const u=String(m.url||'');const mm=u.match(/(?:\/d\/|id=)([A-Za-z0-9_-]{15,})/);if(mm)return'https://drive.google.com/thumbnail?id='+mm[1]+'&sz=w600';return u;}
 function repStr(v){return v==null?'':String(v);}
@@ -1596,9 +1596,9 @@ function normRepDoc(d){const o=Object.assign({},d||{});['fecha','linea','codigo'
 function normRepRec(r){const o=Object.assign({},r||{});['fecha','tipoIngreso','proveedor','inspector','oc','guia','factura','ficha','horaInicio','horaFin','resultado','observaciones','dictamen'].forEach(k=>o[k]=repStr(o[k]));o.tiempoHoras=Number(o.tiempoHoras)||0;o.items=arrOf(o.items).map(i=>({tipo:repStr(i&&i.tipo),codigo:repStr(i&&i.codigo),cantidad:Number(i&&i.cantidad)||0,estado:repStr((i&&i.estado)||'Conforme'),falla:repStr(i&&i.falla),media:repMedia(i&&i.media)}));o.pruebas=arrOf(o.pruebas).map(repStr);o.media=repMedia(o.media);return o;}
 function repPill(txt,fg,bg){return'<span style="display:inline-block;background:'+bg+';color:'+fg+';font-weight:800;font-size:9.5px;letter-spacing:.6px;padding:2px 9px;border-radius:9px;border:1px solid '+fg+'44;white-space:nowrap;">'+txt+'</span>';}
 function repEvid(arr,title){let ms=repMedia(arr).filter(m=>!(m.type&&String(m.type).indexOf('video')===0&&!m.thumb));if(!ms.length)return'';
-let h='<div style="page-break-inside:avoid;margin:10px 0 2px;"><div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+esc(title||'Evidencia fotográfica')+'</div>';
+let h='<div style="margin:8px 0 2px;"><div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+esc(title||'Evidencia fotográfica')+'</div>';
 h+='<div style="border:1px solid '+REP.cell+';border-top:none;padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
-ms.slice(0,12).forEach(m=>{h+='<a href="'+esc(m.url||m.thumb||'')+'"><img src="'+esc(repThumb(m))+'" style="width:100%;height:190px;object-fit:cover;border:1px solid '+REP.cell+';display:block;"></a>';});
+ms.slice(0,12).forEach(m=>{h+='<a href="'+esc(m.url||m.thumb||'')+'"><img src="'+esc(repThumb(m))+'" style="width:100%;height:240px;object-fit:cover;border:1px solid '+REP.cell+';display:block;page-break-inside:avoid;"></a>';});
 return h+'</div></div>';}
 function repHead(big,sub,prod,extra){
 let h='<div style="margin-bottom:10px;">';
@@ -1623,10 +1623,10 @@ h+='</div>';
 h+='<div style="border:1px solid '+REP.cell+';border-top:none;border-bottom:2px solid '+REP.navy+';background:'+REP.zebra+';padding:6px 12px;font-size:10px;color:'+REP.ink+';text-align:center;"><b>ÁREA / PROVEEDOR:</b> '+esc(prod||'—')+' &nbsp;·&nbsp; '+extra+'</div>';
 h+='</div>';
 return h;}
-function repSec(n,t){return'<div style="margin:16px 0 7px;display:flex;align-items:center;gap:8px;page-break-after:avoid;"><span style="background:'+REP.navy+';color:#fff;font-weight:800;font-size:10.5px;padding:3px 9px;border-radius:3px;letter-spacing:1px;">'+esc(n)+'</span><span style="font-size:12px;font-weight:800;color:'+REP.navy+';letter-spacing:1.2px;">'+esc(t).toUpperCase()+'</span><span style="flex:1;height:1px;background:'+REP.cell+';"></span></div>';}
+function repSec(n,t){return'<div style="margin:12px 0 6px;display:flex;align-items:center;gap:8px;page-break-after:avoid;"><span style="background:'+REP.navy+';color:#fff;font-weight:800;font-size:10.5px;padding:3px 9px;border-radius:3px;letter-spacing:1px;">'+esc(n)+'</span><span style="font-size:12px;font-weight:800;color:'+REP.navy+';letter-spacing:1.2px;">'+esc(t).toUpperCase()+'</span><span style="flex:1;height:1px;background:'+REP.cell+';"></span></div>';}
 function repID(l,v,vc){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10.5px;padding:6px 10px;border:1px solid '+REP.navy+';width:42%;vertical-align:top;">'+esc(l)+'</td><td style="border:1px solid '+REP.line+';padding:6px 10px;font-size:11.5px;color:'+(vc||REP.ink)+';word-break:break-word;'+(vc?'font-weight:700;':'')+'">'+(v==null||v===''?'—':v)+'</td></tr>';}
 function repID2(l1,v1,l2,v2){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;vertical-align:top;">'+esc(l1)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;word-break:break-word;">'+(v1==null||v1===''?'—':v1)+'</td><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;vertical-align:top;">'+esc(l2)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;word-break:break-word;">'+(v2==null||v2===''?'—':v2)+'</td></tr>';}
-function repSig(rev){let h='<div style="margin-top:30px;page-break-inside:avoid;">';
+function repSig(rev){let h='<div style="margin-top:22px;page-break-inside:avoid;">';
 h+='<table style="width:100%;text-align:center;font-size:11px;"><tr>';
 h+='<td style="width:50%;">______________________<br><b>Revisado por</b><br><span style="color:'+REP.muted+';font-size:10px;">'+esc(rev||'Control de Calidad')+'</span></td>';
 h+='<td style="width:50%;">______________________<br><b>Vo.Bo.</b><br><span style="color:'+REP.muted+';font-size:10px;">Gerencia de Calidad</span></td></tr></table>';
@@ -1654,7 +1654,7 @@ const ocs=[...new Set(recs.map(r=>String(r.oc||r.guia||'').trim()).filter(Boolea
 const revs=[...new Set(docs.map(d=>d.inspector).filter(Boolean).concat(recs.map(r=>r.inspector).filter(Boolean)))].join(', ');
 const encs=[...new Set(docs.map(d=>d.encargado).filter(Boolean))].join(', ');
 const esNac=!docs.length&&recs.length>0;
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%}</style></head><body>';
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.45;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%;page-break-inside:avoid}</style></head><body>';
 h+=repHead(soloRechazados?'REPORTE DE NO CONFORMIDADES':'REPORTE DE INSPECCIÓN DE CALIDAD',esNac?'Recepción de productos de proveedores nacionales':'Inspección de líneas de producción',lineas||provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b>'+(soloRechazados?' &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>':''));
 h+=repSec(S(sec++),'Datos generales');
 h+='<table style="width:100%;border-collapse:collapse;">';
@@ -1674,8 +1674,8 @@ const conDef=docs.filter(d=>(d.defectos||[]).length);
 if(!conDef.length)h+='<p style="color:'+REP.muted+';">No se registraron hallazgos en el período — todo conforme.</p>';
 let sub=1;
 conDef.forEach(d=>{
-h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin-bottom:8px;">';
-h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sub+++' '+esc(d.fecha)+' · '+esc(d.codigo)+' · '+esc(d.linea)+'</div>';
+h+='<div style="border:1px solid '+REP.line+';margin-bottom:6px;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sub+++' '+esc(d.fecha)+' · '+esc(d.codigo)+' · '+esc(d.linea)+'</div>';
 h+='<div style="padding:8px 10px;">';
 (d.defectos||[]).forEach(x=>{const col=x.tipo==='Funcional'?REP.bad:REP.warn;h+='<div style="margin-top:3px;"><b style="color:'+col+';">['+esc(x.tipo)+']</b> '+esc(x.descripcion)+(x.codigo?' (código '+esc(x.codigo)+')':'')+'</div>';});
 if(d.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(d.observaciones)+'</div>';
@@ -1692,8 +1692,8 @@ h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px
 h+='</table>';
 const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&i.estado&&i.estado!=='Conforme'));
 let sb=1;
-recProb.forEach(r=>{h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin:8px 0;">';
-h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sb+++' '+esc(r.fecha)+' · '+esc(r.proveedor)+'</div><div style="padding:8px 10px;">';
+recProb.forEach(r=>{h+='<div style="border:1px solid '+REP.line+';margin:6px 0;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sb+++' '+esc(r.fecha)+' · '+esc(r.proveedor)+'</div><div style="padding:8px 10px;">';
 h+=(r.items||[]).filter(i=>i&&i.estado&&i.estado!=='Conforme').map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(i.falla):'')+'</div>';}).join('');
 if(r.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(r.observaciones)+'</div>';
 let rf=[];(r.items||[]).forEach(i=>{if(i&&i.media)rf=rf.concat(i.media);});
@@ -1743,7 +1743,7 @@ const totCant=recs.reduce((a,r)=>a+(r.items||[]).reduce((b,i)=>b+((i&&Number(i.c
 const cantProb=problemas.reduce((a,p)=>a+((p.i&&Number(p.i.cantidad))||0),0);
 const insumos=[...new Set(problemas.map(p=>p.i.tipo||p.i.codigo).filter(Boolean))].join(', ');
 const codigos=[...new Set(problemas.map(p=>p.i.codigo).filter(Boolean))].join(', ');
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%}</style></head><body>';
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.45;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%;page-break-inside:avoid}</style></head><body>';
 h+=repHead('INFORME DE INSPECCIÓN DE CALIDAD','Evaluación de recepción de productos — Proveedores nacionales',provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b> &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>');
 h+=repSec(S(sec++),'Datos de identificación');
 h+='<table style="width:100%;border-collapse:collapse;">';
@@ -1773,8 +1773,8 @@ h+=repSec(S(sec++),'Descripción de las condiciones encontradas');
 if(!problemas.length)h+='<p style="color:'+REP.muted+';">Sin condiciones observadas en los registros seleccionados.</p>';
 let sub=1;
 problemas.forEach(p=>{
-h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin-bottom:8px;">';
-h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sub+++' '+esc(p.i.codigo||p.i.tipo||'Ítem')+' — '+esc(p.i.falla||p.i.estado)+'</div>';
+h+='<div style="border:1px solid '+REP.line+';margin-bottom:6px;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sub+++' '+esc(p.i.codigo||p.i.tipo||'Ítem')+' — '+esc(p.i.falla||p.i.estado)+'</div>';
 h+='<div style="padding:8px 10px;">';
 h+='<div style="line-height:1.6;">Se evidenció <b>'+esc(String(p.i.falla||p.i.estado).toLowerCase())+'</b> en el ítem <b>'+esc(p.i.codigo||p.i.tipo)+'</b>'+(p.i.cantidad?' ('+p.i.cantidad+' pzas)':'')+' recibido el '+esc(p.r.fecha)+' de '+esc(p.r.proveedor)+', verificado mediante inspección visual en recepción y registro fotográfico. Dictamen: <b style="color:'+(p.i.estado==='Rechazado'?REP.bad:REP.warn)+';">'+esc(String(p.i.estado).toUpperCase())+'</b>.</div>';
 if(p.r.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(p.r.observaciones)+'</div>';
