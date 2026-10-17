@@ -173,7 +173,7 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v8.2</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v8.2 · sin login</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 <div class="userBox">
 <div class="userChip" id="userChip" style="display:none;" title="Toca para cambiar tu contraseña">👤 <b id="usuNombre"></b><small id="usuRol"></small></div>
@@ -1978,7 +1978,7 @@ openModal(h);
 }
 // ===================== AUTENTICACIÓN v8.0–v8.2 (Grupo Sole) =====================
 const SESS_KEY='sole_sess_v1';
-const LOGIN_REQUERIDO=true; /* v8.2: false SOLO en la variante "sin login" (Apps Script antiguo, sin Code.gs v8.0) */
+const LOGIN_REQUERIDO=false; /* v8.2: false SOLO en la variante "sin login" (Apps Script antiguo, sin Code.gs v8.0) */
 function sha256Hex(str){
 str=unescape(encodeURIComponent(String(str)));
 function rightRotate(value,amount){return (value>>>amount)|(value<<(32-amount));}
