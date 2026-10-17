@@ -152,7 +152,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v7.4</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v7.4.1</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -515,7 +515,7 @@ function kpiRecs(recs){let tot=0,conf=0,nc=0;const hh=(recs||[]).reduce((a,r)=>a
 function docWorst(d){const cs=d.detalle&&d.detalle.codigos;if(cs&&cs.length){if(cs.some(c=>c.estado==='Rechazado'))return'RECHAZADO';if(cs.some(c=>c.estado==='Tolerado'||c.estado==='Observado'))return'TOLERADO';return'CONFORME';}const df=d.defectos||[];if(df.some(x=>x.tipo==='Funcional'))return'RECHAZADO';if(df.length)return'TOLERADO';return'CONFORME';}
 async function cargarDatos(silencioso){
 if(cargando)return;cargando=true;
-syncQueue();mqRun();
+restoreMQ();syncQueue();mqRun();
 try{
 const j=await apiGet();
 const sig=[(j.inspecciones||[]).length,(j.recepciones||[]).length,(j.catalogo||[]).length,(j.envios||[]).length].join('|');
@@ -870,6 +870,86 @@ const cv=document.createElement('canvas');cv.width=w;cv.height=h;
 const cx=cv.getContext('2d');cx.fillStyle='#ffffff';cx.fillRect(0,0,w,h);cx.drawImage(img,0,0,w,h);
 return{dataUrl:cv.toDataURL('image/jpeg',0.82),mime:'image/jpeg',name:(file.name||'foto_'+Date.now()).replace(/\.[^.]*$/,'')+'.jpg'};
 }catch(e){return null;}
+}
+/* ================= COLA DE MEDIOS local-first (mq) ================= */
+const MQ_KEY='sole_media_queue_v1';
+const _mediaReg=new Set();
+let _mqBusy=false;
+function regMedia(arr){if(Array.isArray(arr)&&arr!==pendingMedia&&arr!==pendingMediaRec)_mediaReg.add(arr);}
+function mqAllArrays(){return[pendingMedia,pendingMediaRec].concat([..._mediaReg]);}
+function mqPending(){const out=[];mqAllArrays().forEach(a=>a.forEach(m=>{if(m.pending&&m._data)out.push(m);}));return out;}
+function cleanMedia(m){return{url:m.url||'',thumb:m.thumb||'',driveId:m.driveId||'',type:m.type||'',name:m.name||''};}
+function saveMQ(){
+try{
+const items=[];
+[pendingMedia,pendingMediaRec].forEach((arr,ai)=>{
+arr.forEach(m=>{if(m.pending&&m._data&&m._data.length<500000)items.push({s:ai?'recepcion':'nueva',d:m._data,mime:m._mime||'image/jpeg',name:m.name||'',type:m.type||'image/jpeg'});});
+});
+localStorage.setItem(MQ_KEY,JSON.stringify(items.slice(0,8)));
+}catch(e){}
+}
+function restoreMQ(){
+try{
+const items=JSON.parse(localStorage.getItem(MQ_KEY)||'[]');
+if(items.length){items.forEach(it=>{const arr=it.s==='recepcion'?pendingMediaRec:pendingMedia;arr.push({pending:true,type:it.type||'image/jpeg',name:it.name||'',_data:it.d,_mime:it.mime,local:(String(it.type||'').indexOf('image')===0?('data:image/jpeg;base64,'+it.d):'')});});toast('🔄 Recuperando '+items.length+' evidencia(s) pendiente(s)...');}
+localStorage.removeItem(MQ_KEY);
+renderThumbs();renderRecThumbs();
+}catch(e){}
+}
+async function mqUploadOne(m){
+const r=await apiPost('uploadFile',{filename:m.name||('archivo_'+Date.now()),mimeType:m._mime||m.type||'application/octet-stream',data:m._data});
+let id=r.id||r.driveId||r.fileId||'';
+let url=r.url||r.link||'';
+if(!id&&url){const mm=String(url).match(/\/file\/d\/([-\w]{15,})/)||String(url).match(/[?&]id=([-\w]{15,})/);if(mm)id=mm[1];}
+if(!id&&!url)throw new Error('Respuesta sin id de Drive');
+m.driveId=id;
+m.url=url||(id?('https://drive.google.com/file/d/'+id+'/view'):'');
+m.thumb=r.thumb||('https://drive.google.com/thumbnail?id='+id+'&sz=w400');
+m.pending=false;delete m._data;delete m.local;
+}
+async function mqRun(){
+if(_mqBusy||!navigator.onLine)return;_mqBusy=true;
+try{
+for(let ciclo=0;ciclo<40;ciclo++){
+const p=mqPending();if(!p.length)break;
+let hecho=false;
+for(const m of p){
+try{await mqUploadOne(m);hecho=true;renderAllThumbs();saveMQ();}
+catch(e){m._tries=(m._tries||0)+1;if(m._tries<=3)setTimeout(mqRun,6000);}
+}
+if(!hecho)break;
+}
+}finally{_mqBusy=false;}
+}
+function renderAllThumbs(){mqAllArrays().forEach(a=>{if(a&&a._cid)renderThumbsGen(a,a._cid);});}
+async function flushMedia(arrays){
+try{mqRun();}catch(e){}
+const flat=[].concat(...(arrays||[]).map(a=>a||[])).filter(m=>m.pending&&m._data);
+if(!flat.length)return;
+const t0=Date.now();
+while(Date.now()-t0<25000){await new Promise(r=>setTimeout(r,400));if(!flat.some(m=>m.pending))break;}
+}
+async function addFiles(arr,containerId,files){
+if(!Array.isArray(arr))return;
+if(containerId)arr._cid=containerId;
+regMedia(arr);
+for(const f of (files||[])){
+try{
+if(f.type&&f.type.indexOf('video')===0){
+if(f.size>25*1024*1024){toast('🎥 El video supera 25 MB — se omitió: '+(f.name||''));continue;}
+const dataUrl=await leerArchivo(f);
+arr.push({pending:true,local:URL.createObjectURL(f),type:f.type,name:f.name||('video_'+Date.now()+'.mp4'),_data:dataUrl.split(',')[1]||'',_mime:f.type});
+}else{
+const c=await comprimirImagen(f);
+if(!c){toast('⚠️ No se pudo procesar la imagen');continue;}
+arr.push({pending:true,local:c.dataUrl,type:'image/jpeg',name:c.name,_data:c.dataUrl.split(',')[1]||'',_mime:'image/jpeg'});
+}
+}catch(e){toast('⚠️ Error procesando el archivo');continue;}
+if(containerId)renderThumbsGen(arr,containerId);
+saveMQ();mqRun();
+}
+if(containerId)renderThumbsGen(arr,containerId);
+saveMQ();
 }
 function renderThumbsGen(list,containerId){
 const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
@@ -1356,13 +1436,6 @@ if(!vis.length)he.textContent=allRecs.length?'Sin registros en este alcance — 
 }
 function setRecHistScope(s){window._recHScope=s;window._recHLim=12;renderNacHistory();}
 function moreRecHistRows(){renderRecHistRows((window._recHLim||12)+12);}
-const centerTxt={id:'centerTxt',afterDraw(ch){
-const ctx=ch.ctx;if(!ctx||(ch.$pct==null))return;
-const m=ch.getDatasetMeta(0).data[0];if(!m)return;
-ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
-ctx.fillStyle=ch.$col;ctx.font='bold 30px Arial';ctx.fillText(ch.$pct+'%',m.x,m.y-8);
-ctx.fillStyle='#5b7183';ctx.font='10.5px Arial';ctx.fillText(ch.$sub,m.x,m.y+16);
-ctx.restore();}};
 function renderNacPanel(recs){
 if(typeof Chart==='undefined')return;
 const cR=document.getElementById('chRingN'),c1=document.getElementById('chDiasN');
