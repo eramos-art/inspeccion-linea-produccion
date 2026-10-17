@@ -152,7 +152,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v7.5</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v7.6</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -1586,86 +1586,98 @@ docs.slice(0,20).forEach(d=>{txt+='\n• '+d.fecha+' | '+d.linea+' | '+d.codigo+
 window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 }
 /* ===== INFORME CORPORATIVO (impresión nativa) ===== */
+/* ===== PLANTILLA CORPORATIVA (estilo informe Word de Jefatura) ===== */
+const REP={navy:'#17365D',line:'#7F8B99',cell:'#C9D2DC',zebra:'#F2F2F2',muted:'#5B6B7B',bad:'#C00000',warn:'#B26B00',ok:'#1E7B3C',ink:'#1A1A1A'};
+function repMedia(list){const out=[];(list||[]).forEach(m=>{if(!m)return;if(typeof m==='string'){out.push({url:m});return;}if(m.url||m.thumb||m.driveId)out.push(m);});return out;}
+function repThumb(m){if(m.thumb)return m.thumb;if(m.driveId)return'https://drive.google.com/thumbnail?id='+m.driveId+'&sz=w600';const u=String(m.url||'');const mm=u.match(/(?:\/d\/|id=)([A-Za-z0-9_-]{15,})/);if(mm)return'https://drive.google.com/thumbnail?id='+mm[1]+'&sz=w600';return u;}
+function repEvid(arr,title){let ms=repMedia(arr).filter(m=>!(m.type&&String(m.type).indexOf('video')===0&&!m.thumb));if(!ms.length)return'';
+let h='<div style="page-break-inside:avoid;margin:10px 0 2px;"><div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+esc(title||'Evidencia fotográfica')+'</div>';
+h+='<div style="border:1px solid '+REP.cell+';border-top:none;padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+ms.slice(0,12).forEach(m=>{h+='<a href="'+esc(m.url||m.thumb||'')+'"><img src="'+esc(repThumb(m))+'" style="width:100%;height:190px;object-fit:cover;border:1px solid '+REP.cell+';display:block;"></a>';});
+return h+'</div></div>';}
+function repHead(big,sub,prod,extra){
+let h='<div style="text-align:center;margin-bottom:6px;">';
+h+='<div style="font-size:13px;font-weight:800;color:'+REP.navy+';letter-spacing:.5px;">CONTROL DE CALIDAD</div>';
+h+='<div style="font-size:20px;font-weight:800;color:'+REP.navy+';margin-top:4px;">'+esc(big)+'</div>';
+h+='<div style="font-size:11.5px;font-weight:700;color:#222;margin-top:6px;">'+esc(sub)+'</div>';
+h+='<div style="font-size:13.5px;font-weight:800;color:#222;margin-top:10px;">'+esc(prod)+'</div>';
+h+='<div style="font-size:10.5px;color:#444;margin-top:6px;">'+extra+'</div></div>';
+return h;}
+function repSec(n,t){return'<div style="margin:15px 0 6px;font-size:12px;font-weight:800;color:'+REP.navy+';">'+esc(n)+'. '+esc(t).toUpperCase()+'</div>';}
+function repID(l,v,vc){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10.5px;padding:6px 10px;border:1px solid '+REP.navy+';width:42%;">'+esc(l)+'</td><td style="border:1px solid '+REP.line+';padding:6px 10px;font-size:11.5px;color:'+(vc||REP.ink)+';'+(vc?'font-weight:700;':'')+'">'+(v==null||v===''?'—':v)+'</td></tr>';}
+function repID2(l1,v1,l2,v2){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;">'+esc(l1)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;">'+(v1==null||v1===''?'—':v1)+'</td><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;">'+esc(l2)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;">'+(v2==null||v2===''?'—':v2)+'</td></tr>';}
+function repSig(rev){let h='<table style="width:100%;margin-top:34px;text-align:center;font-size:11px;"><tr>';
+h+='<td style="width:50%;">______________________<br><b>Revisado por</b><br><span style="color:'+REP.muted+';font-size:10px;">'+esc(rev||'Control de Calidad')+'</span></td>';
+h+='<td style="width:50%;">______________________<br><b>Vo.Bo.</b><br><span style="color:'+REP.muted+';font-size:10px;">Gerencia de Calidad</span></td></tr></table>';
+h+='<p style="font-size:9px;color:#98A3AE;text-align:center;margin-top:16px;letter-spacing:1px;">Grupo Sole · Rivaa Corporation — Documento controlado · Generado el '+new Date().toLocaleString('es-PE')+'</p>';
+return h;}
 function buildInformeHTML(docs,recs,soloRechazados){
 const hoy=new Date().toISOString().slice(0,10);
+const file='QC-'+hoy.slice(2,4)+hoy.slice(5,7)+hoy.slice(8,10);
+const S=n=>('0'+n).slice(-2);let sec=1;
 const kp=kpiCodigos(docs);
 if(!docs.length&&recs.length){const kr=kpiRecs(recs);kp.tot=kr.tot;kp.conf=kr.conf;}
 const pct=kp.tot?Math.round(kp.conf/kp.tot*100):100;
 const inc=docs.reduce((a,d)=>a+(d.defectos||[]).length,0);
-const file='QC-'+hoy.slice(2,4)+hoy.slice(5,7)+hoy.slice(8,10);
-const C={navy:'#023B5C',navy2:'#285874',muted:'#64748B',line:'#C9D4DE',bad:'#c0392b',warn:'#c0842a',ok:'#1a8f4c',bg:'#F4F7FA'};
-const secTitle=(n,es,en)=>'<div style="margin:18px 0 8px;font-size:13px;font-weight:800;letter-spacing:.5px;"><span style="color:'+C.navy+';">'+n+'</span>&nbsp;&nbsp;<span style="color:'+C.muted+';">'+esc(es)+' / '+esc(en)+'</span></div>';
-const iv=(l,vv)=>'<td style="border:1px solid '+C.line+';padding:7px 10px;font-size:11px;font-weight:700;color:'+C.navy2+';background:'+C.bg+';width:24%;">'+esc(l)+'</td><td style="border:1px solid '+C.line+';padding:7px 10px;font-size:11.5px;color:#152633;">'+(vv==null||vv===''?'—':vv)+'</td>';
-const revNames=[...new Set(docs.map(d=>d.inspector).filter(Boolean))];
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#152633;padding:18px;">';
-h+='<table style="width:100%;border-collapse:collapse;border:2px solid '+C.navy+';"><tr>';
-h+='<td style="background:'+C.navy+';color:#fff;width:36%;text-align:center;padding:20px 10px;vertical-align:middle;">';
-h+='<img src="logo.png" alt="logo" onerror="this.style.display=\'none\'" style="max-height:54px;max-width:90%;object-fit:contain;margin-bottom:6px;">';
-h+='<div style="font-size:21px;font-weight:800;letter-spacing:1px;">Grupo Sole</div><div style="font-size:9px;opacity:.8;letter-spacing:2px;margin-top:2px;">Rivaa Corporation</div><div style="font-size:7.5px;opacity:.55;margin-top:8px;letter-spacing:1px;">SOLE · S-COLLECTION · RINNAI · METUSA · BRIKKEL</div>';
-h+='</td>';
-h+='<td style="padding:16px 18px;vertical-align:middle;">';
-h+='<div style="font-size:19px;font-weight:800;color:'+C.navy2+';">REPORTE DE INSPECCIÓN DE CALIDAD</div><div style="font-size:11.5px;font-style:italic;color:'+C.muted+';margin-top:2px;">Quality Inspection Report</div>';
-h+='<div style="margin-top:10px;font-size:12px;"><b style="color:'+C.navy2+';">FILE:</b> '+file+'&nbsp;&nbsp;&nbsp;&nbsp;<b style="color:'+C.navy2+';">FECHA:</b> '+hoy+(soloRechazados?'&nbsp;&nbsp;&nbsp;&nbsp;<span style="background:#fdeaea;color:'+C.bad+';font-weight:800;padding:2px 8px;border-radius:3px;font-size:10.5px;">NO CONFORMIDADES</span>':'')+'</div>';
-h+='</td></tr>';
-h+='<tr><td colspan="2" style="border-top:1.5px solid '+C.navy+';padding:7px 12px;"><span style="font-size:11px;font-weight:800;color:'+C.navy2+';">GERENCIA DE INNOVACIÓN Y CALIDAD</span><span style="float:right;font-size:9.5px;color:#B0BCC7;letter-spacing:1px;">DOCUMENTO CONTROLADO · QUALITY REPORT</span></td></tr>';
-h+='</table>';
-let sec=1;
-h+=secTitle(sec,'INFORMACIÓN GENERAL','GENERAL INFORMATION');
 const totHH=fmtDur(docs.reduce((a,d)=>a+(d.horasHombre||0),0)+recs.reduce((a,r)=>a+(r.tiempoHoras||0),0));
 const hIni=docs.map(d=>d.horaInicio).filter(Boolean).concat(recs.map(r=>r.horaInicio).filter(Boolean)).sort()[0]||'';
 const hFin=docs.map(d=>d.horaFin).filter(Boolean).concat(recs.map(r=>r.horaFin).filter(Boolean)).sort().pop()||'';
 const cods=[...new Set(docs.map(d=>d.codigo).filter(Boolean).join(', ').split(', ').filter(Boolean))];
 const lineas=[...new Set(docs.map(d=>d.linea).filter(Boolean))].join(', ');
-h+='<table style="width:100%;border-collapse:collapse;">';
-h+='<tr>'+iv('FECHA / DATE',hoy)+iv('FILE',file)+'</tr>';
-h+='<tr>'+iv('LÍNEA / LINE',esc(lineas||'—'))+iv('CÓDIGOS / CODES',esc(cods.slice(0,6).join(', ')+(cods.length>6?' +'+(cods.length-6):'')))+'</tr>';
-h+='<tr>'+iv('PROVEEDOR / SUPPLIER',esc([...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ')||'—'))+iv('OC / GUÍA',esc([...new Set(recs.map(r=>(r.oc||r.guia||'').trim()).filter(Boolean))].join(', ')||'—'))+'</tr>';
-h+='<tr>'+iv('HORA INICIO / START',hIni)+iv('HORA FIN / END',hFin)+'</tr>';
-h+='<tr>'+iv('TIEMPO INVERTIDO / TIME SPENT',totHH)+iv('ALCANCE / SCOPE',docs.length+' inspecciones · '+kp.tot+' códigos · '+pct+'% conformes')+'</tr>';
-h+='</table>';
-sec++;
-h+=secTitle(sec,'REVISADO POR','REVIEWED BY');
-h+='<table style="width:100%;border-collapse:collapse;">';
-h+='<tr>'+iv('REVISADO POR',esc(revNames.join(', ')||'—'))+iv('CARGO','Control de Calidad')+'</tr>';
+const provs=[...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ');
+const ocs=[...new Set(recs.map(r=>(r.oc||r.guia||'').trim()).filter(Boolean))].join(', ');
+const revs=[...new Set(docs.map(d=>d.inspector).filter(Boolean).concat(recs.map(r=>r.inspector).filter(Boolean)))].join(', ');
 const encs=[...new Set(docs.map(d=>d.encargado).filter(Boolean))].join(', ');
-h+='<tr>'+iv('RESP. DE ÁREA / AREA RESP.',esc(encs||'—'))+iv('DICTAMEN GENERAL / OVERALL','<b style="color:'+(soloRechazados?C.bad:(inc?C.warn:C.ok))+';">'+esc(soloRechazados?'NO CONFORME':(inc?'CON OBSERVACIONES':'CONFORME'))+'</b>')+'</tr>';
+const esNac=!docs.length&&recs.length>0;
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:4px 6px;}tr{page-break-inside:avoid}</style></head><body>';
+h+=repHead(soloRechazados?'REPORTE DE NO CONFORMIDADES':'REPORTE DE INSPECCIÓN DE CALIDAD',esNac?'Recepción de productos de proveedores nacionales':'Inspección de líneas de producción',lineas||provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b>'+(soloRechazados?' &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>':''));
+h+=repSec(S(sec++),'Datos generales');
+h+='<table style="width:100%;border-collapse:collapse;">';
+h+=repID2('FECHA',hoy,'FILE',file);
+h+=repID2('LÍNEA / ÁREA',esc(lineas||'—'),'CÓDIGOS',esc(cods.slice(0,6).join(', ')+(cods.length>6?' +'+(cods.length-6):'')||'—'));
+h+=repID2('PROVEEDOR',esc(provs||'—'),'OC / GUÍA',esc(ocs||'—'));
+h+=repID2('HORA INICIO',hIni||'—','HORA FIN',hFin||'—');
+h+=repID2('TIEMPO INVERTIDO',totHH,'ALCANCE',docs.length+' inspección(es) · '+kp.tot+' código(s) · '+pct+'% conformes');
+h+=repID2('REVISADO POR',esc(revs||'—'),'RESP. DE ÁREA',esc(encs||'—'));
+h+=repID2('DICTAMEN GENERAL','<b style="color:'+(soloRechazados?REP.bad:(inc?REP.warn:REP.ok))+';">'+(soloRechazados?'NO CONFORME':(inc?'CON OBSERVACIONES':'CONFORME'))+'</b>','TIPO','<b>'+(soloRechazados?'NO CONFORMIDADES':(esNac?'RECEPCIONES NACIONALES':'INSPECCIÓN DE PRODUCCIÓN'))+'</b>');
 h+='</table>';
-sec++;
+h+=repSec(S(sec++),'Objetivo');
+h+='<p style="margin:4px 0;">Verificar mediante inspección visual '+(esNac?'los productos e insumos recibidos de proveedores nacionales':'los productos habilitados en las líneas de producción')+', comprobando medidas, impresión, acabados, empaque, peso y documentación, con la finalidad de documentar las condiciones detectadas mediante evidencia fotográfica y establecer las acciones correctivas correspondientes.</p>';
 if(docs.length){
-h+=secTitle(sec,'HALLAZGOS Y NO CONFORMIDADES','FINDINGS & NON-CONFORMITIES');
+h+=repSec(S(sec++),'Hallazgos y no conformidades');
 const conDef=docs.filter(d=>(d.defectos||[]).length);
-if(!conDef.length)h+='<p style="font-size:11.5px;color:'+C.muted+';">No se registraron hallazgos en el período — todo conforme. / No findings recorded.</p>';
+if(!conDef.length)h+='<p style="color:'+REP.muted+';">No se registraron hallazgos en el período — todo conforme.</p>';
+let sub=1;
 conDef.forEach(d=>{
-h+='<div style="border:1px solid '+C.line+';border-left:4px solid '+C.bad+';border-radius:6px;padding:10px;margin-bottom:8px;font-size:11px;">';
-h+='<div style="font-weight:800;color:'+C.navy2+';">'+esc(d.fecha)+' · '+esc(d.codigo)+' · '+esc(d.linea)+'</div>';
-(d.defectos||[]).forEach(x=>{const col=x.tipo==='Funcional'?C.bad:C.warn;h+='<div style="margin-top:4px;"><b style="color:'+col+';">['+esc(x.tipo)+']</b> '+esc(x.descripcion)+(x.codigo?' (código '+esc(x.codigo)+')':'')+'</div>';});
-if(d.observaciones)h+='<div style="margin-top:5px;background:'+C.bg+';border-left:3px solid '+C.navy+';padding:5px 8px;border-radius:4px;">📝 '+esc(d.observaciones)+'</div>';
+h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin-bottom:8px;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sub+++' '+esc(d.fecha)+' · '+esc(d.codigo)+' · '+esc(d.linea)+'</div>';
+h+='<div style="padding:8px 10px;">';
+(d.defectos||[]).forEach(x=>{const col=x.tipo==='Funcional'?REP.bad:REP.warn;h+='<div style="margin-top:3px;"><b style="color:'+col+';">['+esc(x.tipo)+']</b> '+esc(x.descripcion)+(x.codigo?' (código '+esc(x.codigo)+')':'')+'</div>';});
+if(d.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(d.observaciones)+'</div>';
 let fotos=[];(d.defectos||[]).forEach(x=>{(x.media||[]).forEach(m=>fotos.push(m));});(d.media||[]).forEach(m=>fotos.push(m));
-if(fotos.length)h+='<div style="margin-top:6px;font-size:9.5px;color:'+C.muted+';">EVIDENCIA / EVIDENCE:</div><div style="margin-top:3px;">'+fotos.slice(0,10).map(m=>'<a href="'+esc(m.url)+'" style="display:inline-block;margin:2px;"><img src="'+esc(m.thumb||m.url)+'" style="width:88px;height:88px;object-fit:cover;border:1px solid '+C.line+';border-radius:4px;"></a>').join('')+'</div>';
-h+='</div>';});
-sec++;
+h+=repEvid(fotos,'Evidencia — '+d.codigo+' ('+d.fecha+')');
+h+='</div></div>';});
 }
 if(recs.length){
-h+=secTitle(sec,'RECEPCIONES NACIONALES','NATIONAL SUPPLIERS RECEIVING');
-h+='<table style="width:100%;border-collapse:collapse;font-size:10.5px;">';
-h+='<tr style="background:'+C.navy2+';color:#fff;"><th style="padding:6px;border:1px solid '+C.line+';">FECHA</th><th style="padding:6px;border:1px solid '+C.line+';">PROVEEDOR</th><th style="padding:6px;border:1px solid '+C.line+';">OC / GUÍA</th><th style="padding:6px;border:1px solid '+C.line+';">ITEMS</th><th style="padding:6px;border:1px solid '+C.line+';">DICTAMEN</th></tr>';
-recs.forEach(r=>{const dic=r.dictamen;const col=(dic==='RECHAZADO'||dic==='OBSERVADO')?C.bad:(dic==='TOLERADO')?C.warn:C.ok;
-h+='<tr><td style="padding:6px;border:1px solid '+C.line+';">'+esc(r.fecha)+'</td><td style="padding:6px;border:1px solid '+C.line+';">'+esc(r.proveedor)+'</td><td style="padding:6px;border:1px solid '+C.line+';">'+esc(r.oc)+' / '+esc(r.guia)+'</td><td style="padding:6px;border:1px solid '+C.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:6px;border:1px solid '+C.line+';color:'+col+';font-weight:800;">'+esc(dic)+'</td></tr>';});
+h+=repSec(S(sec++),'Recepciones nacionales');
+h+='<table style="width:100%;border-collapse:collapse;font-size:10px;">';
+h+='<tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC / GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr>';
+recs.forEach((r,ix)=>{const dic=r.dictamen;const col=(dic==='RECHAZADO'||dic==='OBSERVADO')?REP.bad:(dic==='TOLERADO')?REP.warn:REP.ok;
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.oc)+' / '+esc(r.guia)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';color:'+col+';font-weight:800;">'+esc(dic)+'</td></tr>';});
 h+='</table>';
-const recProb=recs.filter(r=>(r.items||[]).some(i=>i.estado&&i.estado!=='Conforme'));
-recProb.forEach(r=>{h+='<div style="border:1px solid '+C.line+';border-left:4px solid '+C.bad+';border-radius:6px;padding:10px;margin:8px 0;font-size:11px;"><div style="font-weight:800;color:'+C.navy2+';">'+esc(r.fecha)+' · '+esc(r.proveedor)+' · '+esc(r.oc)+'/'+esc(r.guia)+'</div>'+((r.items||[]).filter(i=>i.estado&&i.estado!=='Conforme').map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?C.bad:C.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+'</div>';}).join(''))+(r.observaciones?'<div style="margin-top:5px;background:'+C.bg+';border-left:3px solid '+C.navy+';padding:5px 8px;border-radius:4px;">📝 '+esc(r.observaciones)+'</div>':'');
-let rf=[];(r.items||[]).forEach(i=>{(i.media||[]).forEach(m=>rf.push(m));});
-if(rf.length)h+='<div style="margin-top:6px;font-size:9.5px;color:'+C.muted+';">EVIDENCIA / EVIDENCE:</div><div style="margin-top:3px;">'+rf.slice(0,10).map(m=>'<img src="'+esc(m.thumb||m.url)+'" style="width:88px;height:88px;object-fit:cover;border:1px solid '+C.line+';border-radius:4px;margin:2px;">').join('')+'</div>';
-h+='</div>';});
-sec++;
+const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&i.estado&&i.estado!=='Conforme'));
+let sb=1;
+recProb.forEach(r=>{h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin:8px 0;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sb+++' '+esc(r.fecha)+' · '+esc(r.proveedor)+'</div><div style="padding:8px 10px;">';
+h+=(r.items||[]).filter(i=>i&&i.estado&&i.estado!=='Conforme').map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(i.falla):'')+'</div>';}).join('');
+if(r.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(r.observaciones)+'</div>';
+let rf=[];(r.items||[]).forEach(i=>{if(i&&i.media)rf=rf.concat(i.media);});
+h+=repEvid(rf,'Evidencia — '+r.proveedor+' ('+r.fecha+')');
+h+='</div></div>';});
 }
-h+=secTitle(sec,'CONCLUSIÓN','CONCLUSION');
-h+='<p style="font-size:11.5px;line-height:1.7;">Se realizaron <b>'+docs.length+'</b> inspección(es) y <b>'+recs.length+'</b> recepción(es), cubriendo <b>'+kp.tot+'</b> código(s)/producto(s) con un <b>'+pct+'% de conformidad</b>, un tiempo invertido de <b>'+totHH+'</b> y <b style="color:'+(inc?C.bad:C.ok)+'">'+inc+'</b> incidencia(s) reportada(s).'+(soloRechazados?' El presente documento concentra las no conformidades detectadas para su seguimiento y gestión con los proveedores y áreas responsables.':'')+'</p>';
-h+='<table style="width:100%;margin-top:34px;text-align:center;font-size:11px;"><tr>';
-h+='<td style="width:50%;">______________________<br><b>Revisado por</b><br><span style="color:'+C.muted+';font-size:10px;">'+esc(revNames.join(' / ')||'Control de Calidad')+'</span></td>';
-h+='<td style="width:50%;">______________________<br><b>Vo.Bo.</b><br><span style="color:'+C.muted+';font-size:10px;">Gerencia de Calidad</span></td>';
-h+='</tr></table>';
-h+='<p style="font-size:9px;color:#B0BCC7;text-align:center;margin-top:16px;letter-spacing:1px;">Grupo Sole · Rivaa Corporation — Documento controlado · Generado el '+new Date().toLocaleString('es-PE')+'</p>';
+h+=repSec(S(sec++),'Conclusión');
+h+='<p style="margin:4px 0;">Se realizaron <b>'+docs.length+'</b> inspección(es) y <b>'+recs.length+'</b> recepción(es), cubriendo <b>'+kp.tot+'</b> código(s)/producto(s) con un <b>'+pct+'% de conformidad</b>, un tiempo invertido de <b>'+totHH+'</b> y <b style="color:'+(inc?REP.bad:REP.ok)+'">'+inc+'</b> incidencia(s) reportada(s).'+(soloRechazados?' El presente documento concentra las no conformidades detectadas para su seguimiento y gestión con los proveedores y áreas responsables.':'')+'</p>';
+h+=repSig(revs||'Control de Calidad');
 h+='</body></html>';
 return h;
 }
@@ -1695,65 +1707,66 @@ return out;
 function buildInformeRechNacHTML(recs){
 const hoy=new Date().toISOString().slice(0,10);
 const file='QCN-'+hoy.slice(2,4)+hoy.slice(5,7)+hoy.slice(8,10);
-const C={navy:'#023B5C',navy2:'#285874',muted:'#64748B',line:'#C9D4DE',bad:'#c0392b',warn:'#c0842a',ok:'#1a8f4c',bg:'#F4F7FA'};
-const iv=(l,vv)=>'<td style="border:1px solid '+C.line+';padding:7px 10px;font-size:11px;font-weight:700;color:'+C.navy2+';background:'+C.bg+';width:26%;">'+esc(l)+'</td><td style="border:1px solid '+C.line+';padding:7px 10px;font-size:11.5px;color:#152633;">'+(vv==null||vv===''?'—':vv)+'</td>';
-const st=(n,t)=>'<div style="margin:16px 0 6px;font-size:12.5px;font-weight:800;color:'+C.navy+';letter-spacing:.4px;">'+n+'. '+esc(t)+'</div>';
+const S=n=>('0'+n).slice(-2);let sec=1;
 const provs=[...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ');
 const ocs=[...new Set(recs.map(r=>[r.oc,r.guia].filter(Boolean).join(' / ')).filter(Boolean))].join(', ');
 const fechas=[...new Set(recs.map(r=>r.fecha).filter(Boolean))].join(', ');
 const revisa=[...new Set(recs.map(r=>r.inspector).filter(Boolean))].join(', ');
-const problemas=[];recs.forEach(r=>(r.items||[]).forEach(i=>{if(i.estado&&i.estado!=='Conforme')problemas.push({r:r,i:i});}));
+const problemas=[];recs.forEach(r=>(r.items||[]).forEach(i=>{if(i&&i.estado&&i.estado!=='Conforme')problemas.push({r:r,i:i});}));
 const totItems=recs.reduce((a,r)=>a+((r.items||[]).length||0),0);
-const totCant=recs.reduce((a,r)=>a+(r.items||[]).reduce((b,i)=>b+(Number(i.cantidad)||0),0),0);
-const cantProb=problemas.reduce((a,p)=>a+(Number(p.i.cantidad)||0),0);
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}</style></head><body style="margin:0;font-family:Arial,Helvetica,sans-serif;color:#152633;padding:18px;">';
-h+='<table style="width:100%;border-collapse:collapse;border:2px solid '+C.navy+';"><tr>';
-h+='<td style="background:'+C.navy+';color:#fff;width:34%;text-align:center;padding:18px 10px;vertical-align:middle;"><img src="logo.png" alt="logo" onerror="this.style.display=\'none\'" style="max-height:52px;max-width:90%;object-fit:contain;margin-bottom:6px;"><div style="font-size:20px;font-weight:800;letter-spacing:1px;">Grupo Sole</div><div style="font-size:9px;opacity:.8;letter-spacing:2px;margin-top:2px;">Rivaa Corporation</div><div style="font-size:7.5px;opacity:.6;margin-top:8px;letter-spacing:1px;">SOLE · S-COLLECTION · RINNAI · METUSA · BRIKKEL</div></td>';
-h+='<td style="padding:15px 18px;vertical-align:middle;"><div style="font-size:17px;font-weight:800;color:'+C.navy2+';">INFORME DE INSPECCIÓN DE CALIDAD</div><div style="font-size:10.5px;font-style:italic;color:'+C.muted+';margin-top:2px;">Producto de proveedor nacional — No conformidades / Supplier Quality Report</div>';
-h+='<div style="margin-top:9px;font-size:11.5px;"><b style="color:'+C.navy2+';">FILE:</b> '+file+'&nbsp;&nbsp;&nbsp;<b style="color:'+C.navy2+';">FECHA:</b> '+hoy+'&nbsp;&nbsp;&nbsp;<span style="background:#fdeaea;color:'+C.bad+';font-weight:800;padding:2px 8px;border-radius:3px;font-size:10px;">NO CONFORMIDADES</span></div></td></tr>';
-h+='<tr><td colspan="2" style="border-top:1.5px solid '+C.navy+';padding:6px 12px;"><span style="font-size:10.5px;font-weight:800;color:'+C.navy2+';">GERENCIA DE INNOVACIÓN Y CALIDAD</span><span style="float:right;font-size:9px;color:#B0BCC7;letter-spacing:1px;">DOCUMENTO CONTROLADO</span></td></tr></table>';
-h+=st('01','DATOS DE IDENTIFICACIÓN / IDENTIFICATION');
+const totCant=recs.reduce((a,r)=>a+(r.items||[]).reduce((b,i)=>b+((i&&Number(i.cantidad))||0),0),0);
+const cantProb=problemas.reduce((a,p)=>a+((p.i&&Number(p.i.cantidad))||0),0);
+const insumos=[...new Set(problemas.map(p=>p.i.tipo||p.i.codigo).filter(Boolean))].join(', ');
+const codigos=[...new Set(problemas.map(p=>p.i.codigo).filter(Boolean))].join(', ');
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:4px 6px;}tr{page-break-inside:avoid}</style></head><body>';
+h+=repHead('INFORME DE INSPECCIÓN DE CALIDAD','Evaluación de recepción de productos — Proveedores nacionales',provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b> &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>');
+h+=repSec(S(sec++),'Datos de identificación');
 h+='<table style="width:100%;border-collapse:collapse;">';
-h+='<tr>'+iv('PROVEEDOR / SUPPLIER',esc(provs||'—'))+iv('OC / GUÍA',esc(ocs||'—'))+'</tr>';
-h+='<tr>'+iv('FECHA(S) DE RECEPCIÓN',esc(fechas||'—'))+iv('TIPO DE INGRESO',esc([...new Set(recs.map(r=>r.tipoIngreso).filter(Boolean))].join(', ')||'—'))+'</tr>';
-h+='<tr>'+iv('REVISADO POR / REVIEWED BY',esc(revisa||'—'))+iv('CARGO','Control de Calidad')+'</tr>';
-h+='<tr>'+iv('ÍTEMS EVALUADOS',totItems+' ('+problemas.length+' con observación)')+iv('CANTIDAD AFECTADA',cantProb?cantProb.toLocaleString('es-PE')+' pzas':'—')+'</tr>';
+h+=repID('Producto / Insumo',esc(insumos||'—'));
+h+=repID('Código(s)',esc(codigos||'—'));
+h+=repID('Proveedor',esc(provs||'—'));
+h+=repID('Documento de compra / OC',esc(ocs||'—'));
+h+=repID('Procedencia','Compra local');
+h+=repID('Fecha(s) de recepción',esc(fechas||'—'));
+h+=repID('Cantidad recibida',totCant?totCant.toLocaleString('es-PE')+' unidad(es)':'—');
+h+=repID('Cantidad evaluada',totItems+' ítem(s) — '+problemas.length+' con observación'+(cantProb?' ('+cantProb.toLocaleString('es-PE')+' pzas afectadas)':''));
+h+=repID('Revisado por',esc(revisa||'—'));
+h+=repID('Fecha de inspección',esc(hoy));
 h+='</table>';
-h+=st('02','OBJETIVO / PURPOSE');
-h+='<p style="font-size:11.5px;line-height:1.7;margin:4px 0;">Evaluar los productos e insumos recibidos del proveedor <b>'+esc(provs||'—')+'</b> durante las recepciones registradas, con la finalidad de verificar el cumplimiento de las especificaciones acordadas (medidas, impresión, acabados, empaque, peso y documentación), documentar las no conformidades detectadas mediante evidencia fotográfica y establecer las acciones correctivas correspondientes con el proveedor.</p>';
-h+=st('03','RESULTADOS DE LA INSPECCIÓN / INSPECTION RESULTS');
-h+='<table style="width:100%;border-collapse:collapse;font-size:10.5px;">';
-h+='<tr style="background:'+C.navy2+';color:#fff;"><th style="padding:5px;border:1px solid '+C.line+';">N.º</th><th style="padding:5px;border:1px solid '+C.line+';">FECHA</th><th style="padding:5px;border:1px solid '+C.line+';">INSUMO / PRODUCTO</th><th style="padding:5px;border:1px solid '+C.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+C.line+';">CANT.</th><th style="padding:5px;border:1px solid '+C.line+';">FALLA / CONDICIÓN</th><th style="padding:5px;border:1px solid '+C.line+';">RESULTADO</th></tr>';
-problemas.forEach((p,ix)=>{const col=p.i.estado==='Rechazado'?C.bad:C.warn;
-h+='<tr><td style="padding:5px;border:1px solid '+C.line+';text-align:center;">'+(ix+1)+'</td><td style="padding:5px;border:1px solid '+C.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+C.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+C.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+C.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+C.line+';">'+esc(p.i.falla||'—')+'</td><td style="padding:5px;border:1px solid '+C.line+';color:'+col+';font-weight:800;">'+esc(String(p.i.estado).toUpperCase())+'</td></tr>';});
+h+=repSec(S(sec++),'Objetivo');
+h+='<p style="margin:4px 0;">Realizar la inspección visual y evaluación de los productos e insumos recibidos del proveedor <b>'+esc(provs||'—')+'</b>, con la finalidad de verificar el cumplimiento de las especificaciones acordadas (medidas, impresión, acabados, empaque, peso y documentación), documentar las no conformidades detectadas mediante evidencia fotográfica y establecer las acciones correctivas correspondientes con el proveedor.</p>';
+h+=repSec(S(sec++),'Antecedentes');
+h+='<p style="margin:4px 0;">Durante la recepción de los productos se identificaron diversas condiciones asociadas a la fabricación, impresión, acabado y presentación de los ítems, por lo que se realizó una evaluación visual de las unidades disponibles y el registro fotográfico de las condiciones encontradas. La información de cantidad, proveedor, documento de compra y demás datos de trazabilidad corresponde a los registros de recepción del sistema de Control de Calidad.</p>';
+h+=repSec(S(sec++),'Resultados de la inspección');
+h+='<table style="width:100%;border-collapse:collapse;font-size:10px;">';
+h+='<tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">INSUMO / PRODUCTO</th><th style="padding:5px;border:1px solid '+REP.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+REP.line+';">CANT.</th><th style="padding:5px;border:1px solid '+REP.line+';">FALLA / CONDICIÓN</th><th style="padding:5px;border:1px solid '+REP.line+';">RESULTADO</th></tr>';
+problemas.forEach((p,ix)=>{const col=p.i.estado==='Rechazado'?REP.bad:REP.warn;
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.falla||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';color:'+col+';font-weight:800;">'+esc(String(p.i.estado).toUpperCase())+'</td></tr>';});
 h+='</table>';
-h+='<p style="font-size:10.5px;color:'+C.muted+';margin:6px 0 0;">Resumen: '+totItems+' ítem(s) evaluado(s) — '+problemas.length+' con observación ('+(totItems?Math.round(problemas.length/totItems*100):0)+'%), conformidad de ítems: '+(totItems?Math.round((totItems-problemas.length)/totItems*100):100)+'%.</p>';
-h+=st('04','DESCRIPCIÓN DE LAS CONDICIONES ENCONTRADAS / FINDINGS');
-if(!problemas.length)h+='<p style="font-size:11px;color:'+C.muted+';">Sin condiciones observadas en los registros seleccionados.</p>';
-problemas.forEach((p,ix)=>{
-h+='<div style="border:1px solid '+C.line+';border-left:4px solid '+(p.i.estado==='Rechazado'?C.bad:C.warn)+';border-radius:6px;padding:9px 11px;margin-bottom:7px;font-size:11px;">';
-h+='<div style="font-weight:800;color:'+C.navy2+';">4.'+(ix+1)+' '+esc(p.i.codigo||p.i.tipo||'Ítem')+' — '+esc(p.i.falla||p.i.estado)+'</div>';
-h+='<div style="margin-top:4px;line-height:1.6;">Se evidenció <b>'+esc(String(p.i.falla||p.i.estado).toLowerCase())+'</b> en el ítem <b>'+esc(p.i.codigo||p.i.tipo)+'</b>'+(p.i.cantidad?' ('+p.i.cantidad+' pzas)':'')+' recibido el '+esc(p.r.fecha)+' de '+esc(p.r.proveedor)+', verificado mediante inspección visual en recepción y registro fotográfico. Dictamen: <b style="color:'+(p.i.estado==='Rechazado'?C.bad:C.warn)+';">'+esc(String(p.i.estado).toUpperCase())+'</b>.</div>';
-if(p.r.observaciones)h+='<div style="margin-top:5px;background:'+C.bg+';border-left:3px solid '+C.navy+';padding:5px 8px;border-radius:4px;">📝 '+esc(p.r.observaciones)+'</div>';
-const fots=(p.i.media||[]).filter(m=>m.url||m.driveId||m.thumb);
-if(fots.length)h+='<div style="margin-top:6px;font-size:9.5px;color:'+C.muted+';">EVIDENCIA / EVIDENCE:</div><div style="margin-top:3px;">'+fots.slice(0,10).map(m=>'<a href="'+esc(m.url)+'"><img src="'+esc(m.thumb||m.url)+'" style="width:86px;height:86px;object-fit:cover;border:1px solid '+C.line+';border-radius:4px;margin:2px;"></a>').join('')+'</div>';
-h+='</div>';});
-h+=st('05','ANÁLISIS DE CALIDAD / QUALITY ANALYSIS');
-h+='<p style="font-size:11.5px;line-height:1.7;margin:4px 0;">De acuerdo con la inspección realizada en recepción, se identificaron <b>'+problemas.length+'</b> ítem(s) con condiciones no conformes de un total de <b>'+totItems+'</b> evaluado(s)'+(totCant?', sobre una cantidad total recibida de <b>'+totCant.toLocaleString('es-PE')+'</b> unidades':'')+'. Las condiciones observadas afectan la conformidad del producto recibido y justifican la revisión del proceso de fabricación, impresión, acabado y embalaje por parte del proveedor, así como la verificación contra las especificaciones y muestras aprobadas antes de cada despacho. La presente evaluación se basa en inspección visual y evidencia fotográfica.</p>';
-h+=st('06','RECOMENDACIONES / ACCIONES AL PROVEEDOR / SUPPLIER ACTIONS');
+h+='<p style="font-size:10.5px;color:'+REP.muted+';margin:6px 0 0;">Resumen: '+totItems+' ítem(s) evaluado(s) — '+problemas.length+' con observación ('+(totItems?Math.round(problemas.length/totItems*100):0)+'%), conformidad de ítems: '+(totItems?Math.round((totItems-problemas.length)/totItems*100):100)+'%.</p>';
+h+=repSec(S(sec++),'Descripción de las condiciones encontradas');
+if(!problemas.length)h+='<p style="color:'+REP.muted+';">Sin condiciones observadas en los registros seleccionados.</p>';
+let sub=1;
+problemas.forEach(p=>{
+h+='<div style="page-break-inside:avoid;border:1px solid '+REP.line+';margin-bottom:8px;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+S(sec-1)+'.'+sub+++' '+esc(p.i.codigo||p.i.tipo||'Ítem')+' — '+esc(p.i.falla||p.i.estado)+'</div>';
+h+='<div style="padding:8px 10px;">';
+h+='<div style="line-height:1.6;">Se evidenció <b>'+esc(String(p.i.falla||p.i.estado).toLowerCase())+'</b> en el ítem <b>'+esc(p.i.codigo||p.i.tipo)+'</b>'+(p.i.cantidad?' ('+p.i.cantidad+' pzas)':'')+' recibido el '+esc(p.r.fecha)+' de '+esc(p.r.proveedor)+', verificado mediante inspección visual en recepción y registro fotográfico. Dictamen: <b style="color:'+(p.i.estado==='Rechazado'?REP.bad:REP.warn)+';">'+esc(String(p.i.estado).toUpperCase())+'</b>.</div>';
+if(p.r.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(p.r.observaciones)+'</div>';
+h+=repEvid(p.i.media,'Evidencia — '+(p.i.codigo||p.i.tipo||'Ítem'));
+h+='</div></div>';});
+h+=repSec(S(sec++),'Análisis de calidad');
+h+='<p style="margin:4px 0;">De acuerdo con la inspección realizada en recepción, se identificaron <b>'+problemas.length+'</b> ítem(s) con condiciones no conformes de un total de <b>'+totItems+'</b> evaluado(s)'+(totCant?', sobre una cantidad total recibida de <b>'+totCant.toLocaleString('es-PE')+'</b> unidades':'')+'. Las condiciones observadas afectan la conformidad del producto recibido y justifican la revisión del proceso de fabricación, impresión, acabado y embalaje por parte del proveedor, así como la verificación contra las especificaciones y muestras aprobadas antes de cada despacho. La presente evaluación se basa en inspección visual y evidencia fotográfica.</p>';
+h+=repSec(S(sec++),'Recomendaciones / acciones al proveedor');
 const recsLista=[];
 problemas.forEach(p=>recomParaFalla(p.i.falla).forEach(t=>{if(!recsLista.includes(t))recsLista.push(t);}));
 recsLista.push('Coordinar con Calidad la reposición o reproceso de las unidades afectadas.');
 recsLista.push('Presentar las acciones correctivas correspondientes y la evidencia de su implementación.');
 recsLista.push('Establecer un control de liberación previo al despacho (medidas, impresión, acabado, empaque y documentación).');
-h+='<ol style="font-size:11px;line-height:1.7;margin:4px 0 0;padding-left:20px;">'+recsLista.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>';
-h+=st('07','CONCLUSIÓN / CONCLUSION');
-h+='<p style="font-size:11.5px;line-height:1.7;margin:4px 0;">Durante la inspección de los productos recibidos de <b>'+esc(provs||'—')+'</b> se identificaron las condiciones descritas en las secciones anteriores, las cuales afectan la calidad y presentación del producto. Se recomienda la revisión del proceso por parte del proveedor y el establecimiento de controles antes del empaque y despacho, quedando a la espera de las acciones correctivas correspondientes.</p>';
-h+='<table style="width:100%;margin-top:30px;text-align:center;font-size:11px;"><tr>';
-h+='<td style="width:50%;">______________________<br><b>Revisado por</b><br><span style="color:'+C.muted+';font-size:10px;">'+esc(revisa||'Control de Calidad')+'</span></td>';
-h+='<td style="width:50%;">______________________<br><b>Vo.Bo.</b><br><span style="color:'+C.muted+';font-size:10px;">Gerencia de Calidad</span></td>';
-h+='</tr></table>';
-h+='<p style="font-size:9px;color:#B0BCC7;text-align:center;margin-top:14px;letter-spacing:1px;">Grupo Sole · Rivaa Corporation — Documento controlado · Generado el '+new Date().toLocaleString('es-PE')+'</p>';
+h+='<ol style="margin:4px 0 0;padding-left:20px;">'+recsLista.map(t=>'<li style="margin-bottom:3px;">'+esc(t)+'</li>').join('')+'</ol>';
+h+=repSec(S(sec++),'Conclusión');
+h+='<p style="margin:4px 0;">Durante la inspección de los productos recibidos de <b>'+esc(provs||'—')+'</b> se identificaron las condiciones descritas en las secciones anteriores, las cuales afectan la calidad y presentación del producto. Se recomienda la revisión del proceso por parte del proveedor y el establecimiento de controles antes del empaque y despacho, quedando a la espera de las acciones correctivas correspondientes.</p>';
+h+=repSig(revisa||'Control de Calidad');
 h+='</body></html>';
 return h;
 }
@@ -1783,16 +1796,29 @@ if(!recs.length){toast(ids.length?'Ninguno de los registros marcados es Tolerado
 imprimirInforme([],recs,true,'nacRech');
 }
 function imprimirInforme(docs,recs,soloRech,tpl){
+let html='';
+try{html=(tpl==='nacRech')?buildInformeRechNacHTML(recs):buildInformeHTML(docs,recs,soloRech);}
+catch(e){toast('❌ Error armando el informe: '+e.message);return;}
+if(!html||html.length<80){toast('❌ No se generó contenido del informe.');return;}
 toast('🖨 Preparando informe — elige "Guardar como PDF" en el diálogo...');
 const fr=document.createElement('iframe');
 fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:none;opacity:0;';
 document.body.appendChild(fr);
 const fdoc=fr.contentWindow.document;
-fdoc.open();fdoc.write((tpl==='nacRech')?buildInformeRechNacHTML(recs):buildInformeHTML(docs,recs,soloRech));fdoc.close();
+fdoc.open();fdoc.write(html);fdoc.close();
+let fired=false;
+const kill=()=>{try{fdoc.open();fdoc.write('');fdoc.close();}catch(e){}try{fr.remove();}catch(e){}};
+const fire=()=>{if(fired)return;fired=true;
+setTimeout(()=>{try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){kill();}},250);
+try{fr.contentWindow.addEventListener('afterprint',()=>setTimeout(kill,500));}catch(e){}
+window.addEventListener('focus',function once(){window.removeEventListener('focus',once);setTimeout(kill,700);});
+setTimeout(kill,120000);};
 const imgs=[...fdoc.images];
-let listos=0;
-const lanzar=()=>{listos++;if(listos>=imgs.length||listos>15){try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){}setTimeout(()=>fr.remove(),60000);}};
-if(!imgs.length){setTimeout(lanzar,400);}else{imgs.forEach(im=>{if(im.complete)lanzar();else{im.onload=lanzar;im.onerror=lanzar;}});setTimeout(lanzar,8000);}
+let ready=0;
+const step=()=>{ready++;if(ready>=imgs.length||ready>80)setTimeout(fire,150);};
+if(!imgs.length){setTimeout(fire,400);}
+else{imgs.forEach(im=>{if(im.complete)step();else{im.addEventListener('load',step);im.addEventListener('error',step);}});}
+setTimeout(()=>{try{[...fdoc.images].forEach(im=>{if(!im.complete)step();});}catch(e){}setTimeout(fire,200);},6000);
 }
 function verDoc(id){
 const d=allDocs.find(x=>x.id===id);if(!d)return;
