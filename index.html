@@ -152,7 +152,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v7.6</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v7.8</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -1590,26 +1590,51 @@ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 const REP={navy:'#17365D',line:'#7F8B99',cell:'#C9D2DC',zebra:'#F2F2F2',muted:'#5B6B7B',bad:'#C00000',warn:'#B26B00',ok:'#1E7B3C',ink:'#1A1A1A'};
 function repMedia(list){const out=[];(list||[]).forEach(m=>{if(!m)return;if(typeof m==='string'){out.push({url:m});return;}if(m.url||m.thumb||m.driveId)out.push(m);});return out;}
 function repThumb(m){if(m.thumb)return m.thumb;if(m.driveId)return'https://drive.google.com/thumbnail?id='+m.driveId+'&sz=w600';const u=String(m.url||'');const mm=u.match(/(?:\/d\/|id=)([A-Za-z0-9_-]{15,})/);if(mm)return'https://drive.google.com/thumbnail?id='+mm[1]+'&sz=w600';return u;}
+function repStr(v){return v==null?'':String(v);}
+function arrOf(v){return Array.isArray(v)?v:[];}
+function normRepDoc(d){const o=Object.assign({},d||{});['fecha','linea','codigo','lote','horaInicio','horaFin','inspector','encargado','observaciones'].forEach(k=>o[k]=repStr(o[k]));o.muestra=Number(o.muestra)||0;o.horasHombre=Number(o.horasHombre)||0;o.defectos=arrOf(o.defectos).map(x=>({tipo:repStr(x&&x.tipo),descripcion:repStr(x&&x.descripcion),codigo:repStr(x&&x.codigo),media:repMedia(x&&x.media)}));o.pruebas=arrOf(o.pruebas).map(repStr);o.media=repMedia(o.media);if(o.detalle&&Array.isArray(o.detalle.codigos))o.detalle.codigos=o.detalle.codigos.map(c=>Object.assign({},c,{codigo:repStr(c&&c.codigo),lote:repStr(c&&c.lote),estado:repStr((c&&c.estado)||'Conforme'),media:repMedia(c&&c.media)}));return o;}
+function normRepRec(r){const o=Object.assign({},r||{});['fecha','tipoIngreso','proveedor','inspector','oc','guia','factura','ficha','horaInicio','horaFin','resultado','observaciones','dictamen'].forEach(k=>o[k]=repStr(o[k]));o.tiempoHoras=Number(o.tiempoHoras)||0;o.items=arrOf(o.items).map(i=>({tipo:repStr(i&&i.tipo),codigo:repStr(i&&i.codigo),cantidad:Number(i&&i.cantidad)||0,estado:repStr((i&&i.estado)||'Conforme'),falla:repStr(i&&i.falla),media:repMedia(i&&i.media)}));o.pruebas=arrOf(o.pruebas).map(repStr);o.media=repMedia(o.media);return o;}
+function repPill(txt,fg,bg){return'<span style="display:inline-block;background:'+bg+';color:'+fg+';font-weight:800;font-size:9.5px;letter-spacing:.6px;padding:2px 9px;border-radius:9px;border:1px solid '+fg+'44;white-space:nowrap;">'+txt+'</span>';}
 function repEvid(arr,title){let ms=repMedia(arr).filter(m=>!(m.type&&String(m.type).indexOf('video')===0&&!m.thumb));if(!ms.length)return'';
 let h='<div style="page-break-inside:avoid;margin:10px 0 2px;"><div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;">'+esc(title||'Evidencia fotográfica')+'</div>';
 h+='<div style="border:1px solid '+REP.cell+';border-top:none;padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
 ms.slice(0,12).forEach(m=>{h+='<a href="'+esc(m.url||m.thumb||'')+'"><img src="'+esc(repThumb(m))+'" style="width:100%;height:190px;object-fit:cover;border:1px solid '+REP.cell+';display:block;"></a>';});
 return h+'</div></div>';}
 function repHead(big,sub,prod,extra){
-let h='<div style="text-align:center;margin-bottom:6px;">';
-h+='<div style="font-size:13px;font-weight:800;color:'+REP.navy+';letter-spacing:.5px;">CONTROL DE CALIDAD</div>';
-h+='<div style="font-size:20px;font-weight:800;color:'+REP.navy+';margin-top:4px;">'+esc(big)+'</div>';
-h+='<div style="font-size:11.5px;font-weight:700;color:#222;margin-top:6px;">'+esc(sub)+'</div>';
-h+='<div style="font-size:13.5px;font-weight:800;color:#222;margin-top:10px;">'+esc(prod)+'</div>';
-h+='<div style="font-size:10.5px;color:#444;margin-top:6px;">'+extra+'</div></div>';
+let h='<div style="margin-bottom:10px;">';
+h+='<div style="background:#4C5F80;color:#fff;text-align:center;padding:24px 16px 16px;">';
+h+='<div style="display:inline-block;">';
+h+='<div style="font-size:27px;font-weight:800;letter-spacing:.5px;line-height:1;">Grupo Sole</div>';
+h+='<div style="font-size:11.5px;font-weight:600;color:#E8ECF4;text-align:right;margin-top:4px;">Rinnai Corporation</div>';
+h+='</div>';
+h+='<div style="margin-top:18px;display:flex;align-items:center;justify-content:center;gap:16px;color:#A8B3C9;">';
+h+='<span style="font-weight:800;font-size:14.5px;">sole<sup style="font-size:6.5px;">®</sup></span>';
+h+='<span style="font-weight:800;font-size:12.5px;">S+Collection</span>';
+h+='<span style="font-weight:800;font-size:14.5px;">Rinnai</span>';
+h+='<span style="text-align:center;line-height:1.3;"><span style="font-weight:800;font-size:11.5px;letter-spacing:.5px;">METUSA</span><br><span style="font-size:5.5px;letter-spacing:1.6px;font-weight:700;">MEJORA TU CASA</span></span>';
+h+='<span style="font-weight:600;font-size:11px;letter-spacing:3px;">BRIKKEL</span>';
+h+='</div>';
+h+='</div>';
+h+='<div style="border:1px solid '+REP.cell+';border-top:none;background:'+REP.navy+';color:#fff;text-align:center;padding:9px 14px;">';
+h+='<div style="font-size:9px;letter-spacing:2.5px;color:#C9D6E8;font-weight:700;">CONTROL DE CALIDAD</div>';
+h+='<div style="font-size:17px;font-weight:800;letter-spacing:1.4px;margin-top:2px;">'+esc(big)+'</div>';
+h+='<div style="font-size:10.5px;color:#C9D6E8;margin-top:3px;">'+esc(sub)+'</div>';
+h+='</div>';
+h+='<div style="border:1px solid '+REP.cell+';border-top:none;border-bottom:2px solid '+REP.navy+';background:'+REP.zebra+';padding:6px 12px;font-size:10px;color:'+REP.ink+';text-align:center;"><b>ÁREA / PROVEEDOR:</b> '+esc(prod||'—')+' &nbsp;·&nbsp; '+extra+'</div>';
+h+='</div>';
 return h;}
-function repSec(n,t){return'<div style="margin:15px 0 6px;font-size:12px;font-weight:800;color:'+REP.navy+';">'+esc(n)+'. '+esc(t).toUpperCase()+'</div>';}
-function repID(l,v,vc){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10.5px;padding:6px 10px;border:1px solid '+REP.navy+';width:42%;">'+esc(l)+'</td><td style="border:1px solid '+REP.line+';padding:6px 10px;font-size:11.5px;color:'+(vc||REP.ink)+';'+(vc?'font-weight:700;':'')+'">'+(v==null||v===''?'—':v)+'</td></tr>';}
-function repID2(l1,v1,l2,v2){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;">'+esc(l1)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;">'+(v1==null||v1===''?'—':v1)+'</td><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;">'+esc(l2)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;">'+(v2==null||v2===''?'—':v2)+'</td></tr>';}
-function repSig(rev){let h='<table style="width:100%;margin-top:34px;text-align:center;font-size:11px;"><tr>';
+function repSec(n,t){return'<div style="margin:16px 0 7px;display:flex;align-items:center;gap:8px;page-break-after:avoid;"><span style="background:'+REP.navy+';color:#fff;font-weight:800;font-size:10.5px;padding:3px 9px;border-radius:3px;letter-spacing:1px;">'+esc(n)+'</span><span style="font-size:12px;font-weight:800;color:'+REP.navy+';letter-spacing:1.2px;">'+esc(t).toUpperCase()+'</span><span style="flex:1;height:1px;background:'+REP.cell+';"></span></div>';}
+function repID(l,v,vc){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10.5px;padding:6px 10px;border:1px solid '+REP.navy+';width:42%;vertical-align:top;">'+esc(l)+'</td><td style="border:1px solid '+REP.line+';padding:6px 10px;font-size:11.5px;color:'+(vc||REP.ink)+';word-break:break-word;'+(vc?'font-weight:700;':'')+'">'+(v==null||v===''?'—':v)+'</td></tr>';}
+function repID2(l1,v1,l2,v2){return'<tr><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;vertical-align:top;">'+esc(l1)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;word-break:break-word;">'+(v1==null||v1===''?'—':v1)+'</td><td style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:10px;padding:6px 8px;border:1px solid '+REP.navy+';width:18%;vertical-align:top;">'+esc(l2)+'</td><td style="border:1px solid '+REP.line+';padding:6px 8px;font-size:11px;width:32%;word-break:break-word;">'+(v2==null||v2===''?'—':v2)+'</td></tr>';}
+function repSig(rev){let h='<div style="margin-top:30px;page-break-inside:avoid;">';
+h+='<table style="width:100%;text-align:center;font-size:11px;"><tr>';
 h+='<td style="width:50%;">______________________<br><b>Revisado por</b><br><span style="color:'+REP.muted+';font-size:10px;">'+esc(rev||'Control de Calidad')+'</span></td>';
 h+='<td style="width:50%;">______________________<br><b>Vo.Bo.</b><br><span style="color:'+REP.muted+';font-size:10px;">Gerencia de Calidad</span></td></tr></table>';
-h+='<p style="font-size:9px;color:#98A3AE;text-align:center;margin-top:16px;letter-spacing:1px;">Grupo Sole · Rivaa Corporation — Documento controlado · Generado el '+new Date().toLocaleString('es-PE')+'</p>';
+h+='<div style="margin-top:24px;border-top:2.5px solid '+REP.navy+';padding-top:7px;display:flex;align-items:center;justify-content:space-between;">';
+h+='<span style="font-family:Georgia,\'Times New Roman\',serif;font-weight:700;font-size:11.5px;color:'+REP.navy+';">Grupo Sole <span style="font-family:Arial;font-weight:400;color:'+REP.muted+';">· Rivaa Corporation</span></span>';
+h+='<span style="font-size:8.5px;color:'+REP.muted+';letter-spacing:.8px;">sole | S·Collection | RINNAI | METUSA | BRIKKEL</span>';
+h+='</div>';
+h+='<p style="font-size:8.5px;color:#98A3AE;text-align:center;margin:5px 0 0;letter-spacing:.6px;">Documento controlado · Generado el '+new Date().toLocaleString('es-PE')+'</p></div>';
 return h;}
 function buildInformeHTML(docs,recs,soloRechazados){
 const hoy=new Date().toISOString().slice(0,10);
@@ -1625,11 +1650,11 @@ const hFin=docs.map(d=>d.horaFin).filter(Boolean).concat(recs.map(r=>r.horaFin).
 const cods=[...new Set(docs.map(d=>d.codigo).filter(Boolean).join(', ').split(', ').filter(Boolean))];
 const lineas=[...new Set(docs.map(d=>d.linea).filter(Boolean))].join(', ');
 const provs=[...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ');
-const ocs=[...new Set(recs.map(r=>(r.oc||r.guia||'').trim()).filter(Boolean))].join(', ');
+const ocs=[...new Set(recs.map(r=>String(r.oc||r.guia||'').trim()).filter(Boolean))].join(', ');
 const revs=[...new Set(docs.map(d=>d.inspector).filter(Boolean).concat(recs.map(r=>r.inspector).filter(Boolean)))].join(', ');
 const encs=[...new Set(docs.map(d=>d.encargado).filter(Boolean))].join(', ');
 const esNac=!docs.length&&recs.length>0;
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:4px 6px;}tr{page-break-inside:avoid}</style></head><body>';
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Calidad '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%}</style></head><body>';
 h+=repHead(soloRechazados?'REPORTE DE NO CONFORMIDADES':'REPORTE DE INSPECCIÓN DE CALIDAD',esNac?'Recepción de productos de proveedores nacionales':'Inspección de líneas de producción',lineas||provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b>'+(soloRechazados?' &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>':''));
 h+=repSec(S(sec++),'Datos generales');
 h+='<table style="width:100%;border-collapse:collapse;">';
@@ -1661,9 +1686,9 @@ h+='</div></div>';});
 if(recs.length){
 h+=repSec(S(sec++),'Recepciones nacionales');
 h+='<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-h+='<tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC / GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr>';
+h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC / GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr></thead>';
 recs.forEach((r,ix)=>{const dic=r.dictamen;const col=(dic==='RECHAZADO'||dic==='OBSERVADO')?REP.bad:(dic==='TOLERADO')?REP.warn:REP.ok;
-h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.oc)+' / '+esc(r.guia)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';color:'+col+';font-weight:800;">'+esc(dic)+'</td></tr>';});
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+(esc(r.oc||'—')+' / '+esc(r.guia||'—'))+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(dic),col,(dic==='RECHAZADO'||dic==='OBSERVADO')?'#fdecec':(dic==='TOLERADO')?'#fff4e3':'#e9f6ee')+'</td></tr>';});
 h+='</table>';
 const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&i.estado&&i.estado!=='Conforme'));
 let sb=1;
@@ -1718,7 +1743,7 @@ const totCant=recs.reduce((a,r)=>a+(r.items||[]).reduce((b,i)=>b+((i&&Number(i.c
 const cantProb=problemas.reduce((a,p)=>a+((p.i&&Number(p.i.cantidad))||0),0);
 const insumos=[...new Set(problemas.map(p=>p.i.tipo||p.i.codigo).filter(Boolean))].join(', ');
 const codigos=[...new Set(problemas.map(p=>p.i.codigo).filter(Boolean))].join(', ');
-let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:4px 6px;}tr{page-break-inside:avoid}</style></head><body>';
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Inspección '+file+'</title><style>@page{size:A4;margin:12mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.55;margin:0;padding:0;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%}</style></head><body>';
 h+=repHead('INFORME DE INSPECCIÓN DE CALIDAD','Evaluación de recepción de productos — Proveedores nacionales',provs||'—','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+hoy+'</b> &nbsp;·&nbsp; <span style="background:#fdeaea;color:'+REP.bad+';font-weight:800;padding:2px 8px;">NO CONFORMIDADES</span>');
 h+=repSec(S(sec++),'Datos de identificación');
 h+='<table style="width:100%;border-collapse:collapse;">';
@@ -1739,9 +1764,9 @@ h+=repSec(S(sec++),'Antecedentes');
 h+='<p style="margin:4px 0;">Durante la recepción de los productos se identificaron diversas condiciones asociadas a la fabricación, impresión, acabado y presentación de los ítems, por lo que se realizó una evaluación visual de las unidades disponibles y el registro fotográfico de las condiciones encontradas. La información de cantidad, proveedor, documento de compra y demás datos de trazabilidad corresponde a los registros de recepción del sistema de Control de Calidad.</p>';
 h+=repSec(S(sec++),'Resultados de la inspección');
 h+='<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-h+='<tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">INSUMO / PRODUCTO</th><th style="padding:5px;border:1px solid '+REP.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+REP.line+';">CANT.</th><th style="padding:5px;border:1px solid '+REP.line+';">FALLA / CONDICIÓN</th><th style="padding:5px;border:1px solid '+REP.line+';">RESULTADO</th></tr>';
+h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">INSUMO / PRODUCTO</th><th style="padding:5px;border:1px solid '+REP.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+REP.line+';">CANT.</th><th style="padding:5px;border:1px solid '+REP.line+';">FALLA / CONDICIÓN</th><th style="padding:5px;border:1px solid '+REP.line+';">RESULTADO</th></tr></thead>';
 problemas.forEach((p,ix)=>{const col=p.i.estado==='Rechazado'?REP.bad:REP.warn;
-h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.falla||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';color:'+col+';font-weight:800;">'+esc(String(p.i.estado).toUpperCase())+'</td></tr>';});
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.falla||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(String(p.i.estado).toUpperCase()),col,p.i.estado==='Rechazado'?'#fdecec':'#fff4e3')+'</td></tr>';});
 h+='</table>';
 h+='<p style="font-size:10.5px;color:'+REP.muted+';margin:6px 0 0;">Resumen: '+totItems+' ítem(s) evaluado(s) — '+problemas.length+' con observación ('+(totItems?Math.round(problemas.length/totItems*100):0)+'%), conformidad de ítems: '+(totItems?Math.round((totItems-problemas.length)/totItems*100):100)+'%.</p>';
 h+=repSec(S(sec++),'Descripción de las condiciones encontradas');
@@ -1797,7 +1822,7 @@ imprimirInforme([],recs,true,'nacRech');
 }
 function imprimirInforme(docs,recs,soloRech,tpl){
 let html='';
-try{html=(tpl==='nacRech')?buildInformeRechNacHTML(recs):buildInformeHTML(docs,recs,soloRech);}
+try{docs=arrOf(docs).map(normRepDoc);recs=arrOf(recs).map(normRepRec);html=(tpl==='nacRech')?buildInformeRechNacHTML(recs):buildInformeHTML(docs,recs,soloRech);}
 catch(e){toast('❌ Error armando el informe: '+e.message);return;}
 if(!html||html.length<80){toast('❌ No se generó contenido del informe.');return;}
 toast('🖨 Preparando informe — elige "Guardar como PDF" en el diálogo...');
