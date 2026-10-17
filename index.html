@@ -152,7 +152,7 @@ tbody tr:hover{background:rgba(0,140,221,.07)}
 <div class="header">
 <div class="brand">Grupo Sole<small>CONTROL DE CALIDAD</small></div>
 <div class="gerencia">GERENCIA DE INNOVACIÓN Y CALIDAD</div>
-<div class="repname">Inspección en Planta · Productos Nacionales · v7.9</div>
+<div class="repname">Inspección en Planta · Productos Nacionales · v7.10</div>
 <div class="relojPill">🦉 <span id="relojTxt">--:--:--</span><small id="relojDia"></small></div>
 </div>
 <div class="tabs">
@@ -1135,7 +1135,7 @@ const arr=getObs();
 arr.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=o;b.onclick=()=>{const ta=document.getElementById('r_obs');ta.value=(ta.value?ta.value+' ':'')+o;saveDraftRec();};c.appendChild(b);});
 if(!arr.length)c.innerHTML='<span class="hint">Aún no hay observaciones guardadas. Escribe una y márcala para guardar.</span>';
 }
-const FALLAS_NAC_BASE=['Medidas incorrectas / fuera de tolerancia','Impresión incorrecta (texto o logo errado)','Error en asignación de códigos / códigos no compatibles','Arte mal impreso (desalineado o borroso)','Impresión despintada o desgastada','Impresión con líneas, manchas o rebabas','Cajas o empaque fuera de medida','Falta de peso / conteo incorrecto','Producto sucio o manchado','Material dañado, roto o deformado','Color diferente a la muestra aprobada','Uniones o soldaduras defectuosas','Falta de accesorios o componentes','Embalaje insuficiente / sin protección','Lote, fecha o código ilegible','Ficha técnica o certificado no adjunto'];
+const FALLAS_NAC_BASE=['Medidas incorrectas / fuera de tolerancia','Impresión incorrecta (texto o logo errado)','Error en asignación de códigos / códigos no compatibles','Arte mal impreso (desalineado o borroso)','Impresión despintada o desgastada','Impresión con líneas, manchas o rebabas','Cajas o empaque fuera de medida','Muestra con agujeros (blister/empaque)','Muestra fuera de medidas','Producto fuera de medida','Producto con mal acabado','Falta de peso / conteo incorrecto','Producto sucio o manchado','Material dañado, roto o deformado','Color diferente a la muestra aprobada','Uniones o soldaduras defectuosas','Falta de accesorios o componentes','Embalaje insuficiente / sin protección','Lote, fecha o código ilegible','Ficha técnica o certificado no adjunto'];
 function fillItemFallas(sel){
 const cur=sel.value;
 const extra=activeCatalogo().filter(c=>catTipo(c,'falla')&&c.nombre).map(c=>c.nombre);
@@ -1643,14 +1643,14 @@ const S=n=>('0'+n).slice(-2);let sec=1;
 const kp=kpiCodigos(docs);
 if(!docs.length&&recs.length){const kr=kpiRecs(recs);kp.tot=kr.tot;kp.conf=kr.conf;}
 const pct=kp.tot?Math.round(kp.conf/kp.tot*100):100;
-const inc=docs.reduce((a,d)=>a+(d.defectos||[]).length,0);
+const recNC=recs.reduce((a,r)=>a+(r.items||[]).filter(i=>i&&i.estado&&i.estado!=='Conforme').length,0);const recRej=recs.reduce((a,r)=>a+(r.items||[]).filter(i=>i&&i.estado==='Rechazado').length,0);const inc=docs.reduce((a,d)=>a+(d.defectos||[]).length,0)+recNC;
 const totHH=fmtDur(docs.reduce((a,d)=>a+(d.horasHombre||0),0)+recs.reduce((a,r)=>a+(r.tiempoHoras||0),0));
 const hIni=docs.map(d=>d.horaInicio).filter(Boolean).concat(recs.map(r=>r.horaInicio).filter(Boolean)).sort()[0]||'';
 const hFin=docs.map(d=>d.horaFin).filter(Boolean).concat(recs.map(r=>r.horaFin).filter(Boolean)).sort().pop()||'';
 const cods=[...new Set(docs.map(d=>d.codigo).filter(Boolean).join(', ').split(', ').filter(Boolean))];
 const lineas=[...new Set(docs.map(d=>d.linea).filter(Boolean))].join(', ');
 const provs=[...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ');
-const ocs=[...new Set(recs.map(r=>String(r.oc||r.guia||'').trim()).filter(Boolean))].join(', ');
+const ocs=[...new Set(recs.map(r=>String(r.oc||'').trim()).filter(Boolean))].join(', ');const guias=[...new Set(recs.map(r=>String(r.guia||'').trim()).filter(Boolean))].join(', ');const facturas=[...new Set(recs.map(r=>String(r.factura||'').trim()).filter(Boolean))].join(', ');
 const revs=[...new Set(docs.map(d=>d.inspector).filter(Boolean).concat(recs.map(r=>r.inspector).filter(Boolean)))].join(', ');
 const encs=[...new Set(docs.map(d=>d.encargado).filter(Boolean))].join(', ');
 const esNac=!docs.length&&recs.length>0;
@@ -1660,11 +1660,12 @@ h+=repSec(S(sec++),'Datos generales');
 h+='<table style="width:100%;border-collapse:collapse;">';
 h+=repID2('FECHA',hoy,'FILE',file);
 h+=repID2('LÍNEA / ÁREA',esc(lineas||'—'),'CÓDIGOS',esc(cods.slice(0,6).join(', ')+(cods.length>6?' +'+(cods.length-6):'')||'—'));
-h+=repID2('PROVEEDOR',esc(provs||'—'),'OC / GUÍA',esc(ocs||'—'));
+h+=repID('PROVEEDOR',esc(provs||'—'));
+if(recs.length){h+=repID('ORDEN DE COMPRA (OC)',esc(ocs||'—'));h+=repID('GUÍA DE REMISIÓN',esc(guias||'—'));h+=repID('FACTURA / BOLETA',esc(facturas||'—'));}
 h+=repID2('HORA INICIO',hIni||'—','HORA FIN',hFin||'—');
 h+=repID2('TIEMPO INVERTIDO',totHH,'ALCANCE',docs.length+' inspección(es) · '+kp.tot+' código(s) · '+pct+'% conformes');
 h+=repID2('REVISADO POR',esc(revs||'—'),'RESP. DE ÁREA',esc(encs||'—'));
-h+=repID2('DICTAMEN GENERAL','<b style="color:'+(soloRechazados?REP.bad:(inc?REP.warn:REP.ok))+';">'+(soloRechazados?'NO CONFORME':(inc?'CON OBSERVACIONES':'CONFORME'))+'</b>','TIPO','<b>'+(soloRechazados?'NO CONFORMIDADES':(esNac?'RECEPCIONES NACIONALES':'INSPECCIÓN DE PRODUCCIÓN'))+'</b>');
+h+=repID2('DICTAMEN GENERAL','<b style="color:'+((soloRechazados||recRej)?REP.bad:(inc?REP.warn:REP.ok))+';">'+(soloRechazados?'NO CONFORME':(recRej?'NO CONFORME':(inc?'CON OBSERVACIONES':'CONFORME')))+'</b>','TIPO','<b>'+(soloRechazados?'NO CONFORMIDADES':(esNac?'RECEPCIONES NACIONALES':'INSPECCIÓN DE PRODUCCIÓN'))+'</b>');
 h+='</table>';
 h+=repSec(S(sec++),'Objetivo');
 h+='<p style="margin:4px 0;">Verificar mediante inspección visual '+(esNac?'los productos e insumos recibidos de proveedores nacionales':'los productos habilitados en las líneas de producción')+', comprobando medidas, impresión, acabados, empaque, peso y documentación, con la finalidad de documentar las condiciones detectadas mediante evidencia fotográfica y establecer las acciones correctivas correspondientes.</p>';
@@ -1686,15 +1687,17 @@ h+='</div></div>';});
 if(recs.length){
 h+=repSec(S(sec++),'Recepciones nacionales');
 h+='<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC / GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr></thead>';
+h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC</th><th style="padding:5px;border:1px solid '+REP.line+';">GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS / FALLAS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr></thead>';
 recs.forEach((r,ix)=>{const dic=r.dictamen;const col=(dic==='RECHAZADO'||dic==='OBSERVADO')?REP.bad:(dic==='TOLERADO')?REP.warn:REP.ok;
-h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+(esc(r.oc||'—')+' / '+esc(r.guia||'—'))+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(dic),col,(dic==='RECHAZADO'||dic==='OBSERVADO')?'#fdecec':(dic==='TOLERADO')?'#fff4e3':'#e9f6ee')+'</td></tr>';});
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.oc||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.guia||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+(i.falla?' — '+esc(i.falla):'')+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(dic),col,(dic==='RECHAZADO'||dic==='OBSERVADO')?'#fdecec':(dic==='TOLERADO')?'#fff4e3':'#e9f6ee')+'</td></tr>';});
 h+='</table>';
-const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&i.estado&&i.estado!=='Conforme'));
+const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&((i.estado&&i.estado!=='Conforme')||i.falla)));
+const fallasSel=[];recProb.forEach(r=>(r.items||[]).forEach(i=>{if(i&&i.falla&&!fallasSel.includes(i.falla))fallasSel.push(i.falla);}));
+if(fallasSel.length){h+='<div style="border:1px solid '+REP.line+';margin:6px 0;">';h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">Fallas seleccionadas / agregadas en recepción ('+fallasSel.length+')</div>';h+='<div style="padding:7px 10px;">'+fallasSel.map((f,fi)=>'<div style="margin-top:2px;"><b style="color:'+REP.navy+';">'+S(fi+1)+'.</b> '+esc(f)+'</div>').join('')+'</div></div>';}
 let sb=1;
 recProb.forEach(r=>{h+='<div style="border:1px solid '+REP.line+';margin:6px 0;">';
 h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sb+++' '+esc(r.fecha)+' · '+esc(r.proveedor)+'</div><div style="padding:8px 10px;">';
-h+=(r.items||[]).filter(i=>i&&i.estado&&i.estado!=='Conforme').map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(i.falla):'')+'</div>';}).join('');
+h+=(r.items||[]).filter(i=>i&&((i.estado&&i.estado!=='Conforme')||i.falla)).map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(i.falla):'')+'</div>';}).join('');
 if(r.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(r.observaciones)+'</div>';
 let rf=[];(r.items||[]).forEach(i=>{if(i&&i.media)rf=rf.concat(i.media);});
 h+=repEvid(rf,'Evidencia — '+r.proveedor+' ('+r.fecha+')');
@@ -1734,10 +1737,10 @@ const hoy=new Date().toISOString().slice(0,10);
 const file='QCN-'+hoy.slice(2,4)+hoy.slice(5,7)+hoy.slice(8,10);
 const S=n=>('0'+n).slice(-2);let sec=1;
 const provs=[...new Set(recs.map(r=>r.proveedor).filter(Boolean))].join(', ');
-const ocs=[...new Set(recs.map(r=>[r.oc,r.guia].filter(Boolean).join(' / ')).filter(Boolean))].join(', ');
+const ocs=[...new Set(recs.map(r=>String(r.oc||'').trim()).filter(Boolean))].join(', ');const guias=[...new Set(recs.map(r=>String(r.guia||'').trim()).filter(Boolean))].join(', ');const facturas=[...new Set(recs.map(r=>String(r.factura||'').trim()).filter(Boolean))].join(', ');
 const fechas=[...new Set(recs.map(r=>r.fecha).filter(Boolean))].join(', ');
 const revisa=[...new Set(recs.map(r=>r.inspector).filter(Boolean))].join(', ');
-const problemas=[];recs.forEach(r=>(r.items||[]).forEach(i=>{if(i&&i.estado&&i.estado!=='Conforme')problemas.push({r:r,i:i});}));
+const problemas=[];recs.forEach(r=>(r.items||[]).forEach(i=>{if(i&&((i.estado&&i.estado!=='Conforme')||i.falla))problemas.push({r:r,i:i});}));
 const totItems=recs.reduce((a,r)=>a+((r.items||[]).length||0),0);
 const totCant=recs.reduce((a,r)=>a+(r.items||[]).reduce((b,i)=>b+((i&&Number(i.cantidad))||0),0),0);
 const cantProb=problemas.reduce((a,p)=>a+((p.i&&Number(p.i.cantidad))||0),0);
@@ -1750,7 +1753,9 @@ h+='<table style="width:100%;border-collapse:collapse;">';
 h+=repID('Producto / Insumo',esc(insumos||'—'));
 h+=repID('Código(s)',esc(codigos||'—'));
 h+=repID('Proveedor',esc(provs||'—'));
-h+=repID('Documento de compra / OC',esc(ocs||'—'));
+h+=repID('Orden de compra (OC)',esc(ocs||'—'));
+h+=repID('Guía de remisión',esc(guias||'—'));
+h+=repID('Factura / boleta',esc(facturas||'—'));
 h+=repID('Procedencia','Compra local');
 h+=repID('Fecha(s) de recepción',esc(fechas||'—'));
 h+=repID('Cantidad recibida',totCant?totCant.toLocaleString('es-PE')+' unidad(es)':'—');
