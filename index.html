@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><!--v8.4.1-->
+<meta charset="UTF-8"><!--v8.5.0-->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grupo Sole · Control de Calidad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -469,6 +469,7 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 </div>
 <div class="hint">💡 Marca ☑ los registros de la tabla y el informe saldrá SOLO con esos; si no marcas ninguno, salen todos los del filtro. El de Producción está en su pestaña.</div>
 </div></div>
+<div class="card"><h3>🕐 Seguimiento a proveedores — histórico y eficiencia</h3><div class="body" id="segHistCard"><span class="hint">Cargando…</span></div></div>
 <div class="card"><h3>📑 Registros de Nacionales</h3><div class="body" style="overflow:auto;"><div class="row" id="recHistScopeBar" style="align-items:center;margin-bottom:8px;"></div>
 <table><thead><tr><th style="width:34px;text-align:center;"><input type="checkbox" id="selAllNac" onchange="toggleSelAllNac(this)" title="Seleccionar todos"></th><th>Fecha</th><th>Proveedor</th><th>OC / Guía</th><th>Códigos</th><th>Dictamen</th><th></th></tr></thead><tbody id="recHistBody"></tbody></table>
 <button class="btn btn-outline" id="recHistMore" style="display:none;width:100%;margin-top:8px;" onclick="moreRecHistRows()">▼ Ver más registros</button><div id="recHistEmpty" class="empty" style="display:none;">Aún no hay registros de Nacionales.</div>
@@ -526,7 +527,16 @@ function segBloqueado(){return !segClave();}
 async function apiGet(){const s=sessUsu();const r=await fetch(SCRIPT_URL+'?'+(s?('token='+encodeURIComponent(s.token)+'&'):'')+'_='+Date.now(),{method:'GET',cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(j&&j.ok===false){if(j.error==='auth'){sessClear();paintUser();showLogin('Tu sesión expiró. Ingresa de nuevo.');throw new Error('auth');}throw new Error(j.error||j.msg||'Error desconocido');}return j;}
 async function apiPost(action,payload){payload=payload||{};const s=sessUsu();if(s&&!payload.token)payload.token=s.token;const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action},payload))});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(j&&j.ok===false){if(j.error==='auth'){sessClear();paintUser();showLogin('Tu sesión expiró. Ingresa de nuevo.');throw new Error('auth');}throw new Error(j.error||j.msg||'Error desconocido');}return j;}
 function parseJ(v,f){try{return v?JSON.parse(v):f;}catch{return f;}}
-function fmtFecha(v){if(!v)return'';const s=String(v);const m=s.match(/^(\d{4}-\d{2}-\d{2})/);if(m)return m[1];const d=new Date(v);return isNaN(d)?s:d.toISOString().slice(0,10);}
+function fmtFecha(v){if(!v)return'';const s=String(v).trim();
+let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+m=s.match(/^(\d{1,2})[\/](\d{1,2})[\/](\d{4})/);
+if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+m=s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
+if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+const d=new Date(s);
+if(!isNaN(d)&&s.indexOf('/')<0){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
+return s;}
 function fmtHora(v){if(!v)return'';const s=String(v);const m=s.match(/T(\d{2}):(\d{2})/)||s.match(/^(\d{2}):(\d{2})/);if(m)return m[1]+':'+m[2];const d=new Date(v);return isNaN(d)?s:d.toISOString().slice(11,16);}
 function hoyLocal(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function mesLocal(){return hoyLocal().slice(0,7);}
@@ -539,6 +549,18 @@ function openModal(h){document.getElementById('modalBody').innerHTML=h;document.
 function closeModal(){document.getElementById('modalBg').classList.remove('show');}
 function dictamenDe(items){const it=items||[];if(it.some(i=>i.estado==='Rechazado'))return'RECHAZADO';if(it.some(i=>i.estado==='Tolerado'||i.estado==='Observado'))return'TOLERADO';return'CONFORME';}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+/* ===== v8.5: FOTOS A PRUEBA DE TODO ===== */
+const _mediaFixed={};
+function mediaIdOf(ref){const s=String(ref||'');if(!s||s.indexOf('data:')===0)return'';const m=s.match(/[A-Za-z0-9_-]{25,}/);return m?m[0]:'';}
+function mediaFix(id){if(!id||_mediaFixed[id])return Promise.resolve(false);_mediaFixed[id]=1;return apiPost('mediaFix',{id:id}).catch(()=>false);}
+function imgErr(el,ref){
+const id=mediaIdOf(ref)||mediaIdOf(el.src);
+const st=Number(el.dataset.s||0)+1;el.dataset.s=st;
+if(!id){el.onerror=null;el.style.display='none';return;}
+if(st===1){el.src='https://lh3.googleusercontent.com/d/'+id+'=w400';}
+else if(st===2){mediaFix(id).then(()=>{el.src='https://drive.google.com/thumbnail?id='+id+'&sz=w400&t='+Date.now();});}
+else if(st===3){apiPost('mediaGet',{id:id}).then(r=>{if(r&&r.b64){el.onerror=null;el.src='data:'+(r.mime||'image/jpeg')+';base64,'+r.b64;}else{el.onerror=null;el.style.display='none';}}).catch(()=>{el.onerror=null;el.style.display='none';});}
+else{el.onerror=null;el.style.display='none';}}
 function nowHM(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
 function autoHoraInicio(tab){
 if(tab==='nueva'){const el=document.getElementById('f_hini');if(el&&!el.value){el.value=nowHM();saveDraft();toast('🕐 Hora de inicio registrada automáticamente: '+el.value);}}
@@ -613,7 +635,7 @@ document.getElementById('r_fecha').value=hoyLocal();
 window._lastLinea=document.getElementById('f_linea').value;
 restoreDraft();restoreDraftRec();
 try{segMap=JSON.parse(localStorage.getItem(SEG_KEY)||'{}')}catch(e){}
-cargarSeg();
+segNormalize();cargarSeg();
 if(draftHasContent(DRAFT_KEY)){const d=parseJ(localStorage.getItem(DRAFT_KEY),null);if(d&&d.savedAt)document.getElementById('draftWhenN').textContent=' (guardado a las '+d.savedAt+')';document.getElementById('draftBarN').style.display='block';}
 if(draftHasContent(DRAFT_REC_KEY)){const d=parseJ(localStorage.getItem(DRAFT_REC_KEY),null);if(d&&d.savedAt)document.getElementById('draftWhenR').textContent=' (guardado a las '+d.savedAt+')';document.getElementById('draftBarR').style.display='block';}
 if(!document.querySelector('#rItemsList .defRow'))addRecItemRow();
@@ -1008,8 +1030,7 @@ if(m.type&&String(m.type).indexOf('video')===0){
 h+='<a href="'+esc(u)+'" target="_blank" style="width:86px;height:86px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;text-decoration:none;background:var(--bg);">🎥</a>';
 }else{
 const src=m.thumb||('https://drive.google.com/thumbnail?id='+(m.driveId||'')+'&sz=w400');
-const fb='https://lh3.googleusercontent.com/d/'+(m.driveId||'')+'=w400';
-h+='<a href="'+esc(u)+'" target="_blank"><img loading="lazy" src="'+esc(src)+'" onerror="if(!this.dataset.f1){this.dataset.f1=\'1\';this.src=\''+fb+'\';}else{this.style.display=\'none\';}" style="width:86px;height:86px;object-fit:cover;border:1px solid var(--line);border-radius:8px;"></a>';
+h+='<a href="'+esc(u)+'" target="_blank"><img loading="lazy" src="'+esc(src)+'" onerror="imgErr(this,\''+(m.driveId||m.thumb||'')+'\')" style="width:86px;height:86px;object-fit:cover;border:1px solid var(--line);border-radius:8px;"></a>';
 }
 });
 return h+'</div>';
@@ -1054,7 +1075,7 @@ const img=document.createElement('img');img.loading='lazy';img.style.cursor='poi
 if(m.pending){img.src=m.local||('data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#DBDFE6"/><text x="40" y="48" font-size="26" text-anchor="middle">📷⏳</text></svg>'));}
 else{
 img.src=m.thumb||('https://drive.google.com/thumbnail?id='+(m.driveId||'')+'&sz=w400');
-img.onerror=function(){if(!this.dataset.f1){this.dataset.f1='1';this.src='https://lh3.googleusercontent.com/d/'+(m.driveId||'')+'=w400';}else{this.onerror=null;this.src='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#DBDFE6"/><text x="40" y="48" font-size="28" text-anchor="middle">🖼️</text></svg>');}};
+img.onerror=function(){imgErr(this,m.driveId||m.thumb||m.url||'');};
 }
 img.onclick=()=>{if(m.pending){toast('⏳ Aún subiendo... se abrirá cuando termine');return;}window.open(m.url||('https://drive.google.com/file/d/'+(m.driveId||'')+'/view'),'_blank');};
 d.appendChild(img);
@@ -1536,7 +1557,7 @@ window._recHDocs=recs;
 const hoyR=hoyLocal();
 if(!window._recHScope)window._recHScope='hoy';
 window._recHVis=(window._recHScope==='hoy')?recs.filter(r=>r.fecha===hoyR):recs;
-renderRecHistRows(window._recHLim||12);
+renderRecHistRows(window._recHLim||12);renderSegHistCard();
 renderNacPanel(recs);
 }
 function renderRecHistRows(n){
@@ -1630,12 +1651,14 @@ const insp=allDocs.filter(d=>ids.includes(d.id));
 pedirEmails(hoyLocal(),insp,[]);
 }
 async function delDoc(id){
-if(!confirm('¿Eliminar esta inspección?'))return;
-try{await apiPost('delDoc',{id:id});toast('Registro eliminado');await cargarDatos(true);}catch(e){toast('Error: '+e.message);}
+if(!confirm('¿Eliminar esta inspección? Esta acción no se deshace.'))return;
+const c=(prompt('🔒 Clave de administrador para ELIMINAR:')||'').trim();if(!c)return;
+try{await apiPost('delDoc',{id:id,clave:c});toast('Registro eliminado');await cargarDatos(true);}catch(e){const m=String((e&&e.message)||e||'');toast(m.indexOf('CLAVE')>=0?'🔒 Clave incorrecta':'Error: '+m);}
 }
 async function delRec(id){
-if(!confirm('¿Eliminar esta recepción?'))return;
-try{await apiPost('delRec',{id:id});toast('Registro eliminado');await cargarDatos(true);}catch(e){toast('Error: '+e.message);}
+if(!confirm('¿Eliminar esta recepción? Esta acción no se deshace.'))return;
+const c=(prompt('🔒 Clave de administrador para ELIMINAR:')||'').trim();if(!c)return;
+try{await apiPost('delRec',{id:id,clave:c});toast('Registro eliminado');await cargarDatos(true);}catch(e){const m=String((e&&e.message)||e||'');toast(m.indexOf('CLAVE')>=0?'🔒 Clave incorrecta':'Error: '+m);}
 }
 function exportarExcel(){
 if(typeof XLSX==='undefined'){toast('Librería Excel no cargada.');return;}
@@ -2010,35 +2033,28 @@ const s=segMap[id]||{estado:'Pendiente'};
 const st=s.estado||'Pendiente';
 let h='<h4>📤 Seguimiento al proveedor</h4>';
 h+='<p style="font-size:12.5px;line-height:1.6;">'+(d.fecha?('📅 '+esc(d.fecha)+' · '):'')+(d.proveedor?('🏭 '+esc(d.proveedor)+' · '):'')+(d.linea?('🔧 '+esc(d.linea)+' · '):'')+(d.codigo?('📦 '+esc(d.codigo)):(d.oc?('📄 OC '+esc(d.oc)):''))+'</p>';
-h+='<p style="font-size:12px;color:var(--muted);">¿Ya enviaste el informe al proveedor por correo? Toca el estado que corresponde y confirma. El estado se ve en todos los celulares.</p>';
 if(segBloqueado()){
-h+='<div style="background:#fff7e0;border:1px solid #e8d79a;color:#6b5b1e;border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:12px;line-height:1.5;">🔒 Grabar el estado es solo para <b>personal autorizado</b> (Edgar, jefa o asistente) con la <b>clave de oficina</b>. Sin clave puedes ver el estado, pero no cambiarlo.</div>';
+h+='<div style="background:#fff7e0;border:1px solid #e8d79a;color:#6b5b1e;border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:12px;line-height:1.5;">🔒 Grabar es solo para <b>personal autorizado</b> (Edgar, jefa o asistente) con la <b>clave de oficina</b>. Sin clave puedes ver todo el historial, pero no grabar.</div>';
 h+='<button class="btn btn-accent" style="width:100%;margin-bottom:10px;" onclick="abrirSegClave(\''+id+'\')">🔓 Introducir clave de oficina</button>';}
 else{
 h+='<p style="font-size:12px;color:var(--muted);margin-bottom:8px;">🔓 Modo oficina · grabas como <b>'+esc(segNombre()||'—')+'</b> · <a href="javascript:void(0)" onclick="abrirSegClave(\''+id+'\')" style="color:var(--accent);font-weight:700;">cambiar</a></p>';}
+h+='<p style="font-size:12px;color:var(--muted);">Toca el estado que corresponde y confirma. Cada cambio, respuesta o nota queda con <b>fecha y hora</b> en el historial de abajo (así se ve si el proveedor responde rápido).</p>';
 SEG_ESTADOS.forEach(x=>{h+='<button class="btn '+(x[0]===st?'btn-accent':'btn-outline')+'" style="width:100%;margin-bottom:8px;text-align:left;" onclick="elegirSeg(\''+id+'\',\''+x[0]+'\')">'+x[1]+'</button>';});
+h+='<div class="row" style="margin:4px 0 2px;">';
+h+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="registrarRespSeg(\''+id+'\')">📥 Proveedor respondió</button>';
+h+='<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="registrarNotaSeg(\''+id+'\')">📝 Registrar nota</button></div>';
 h+='<textarea id="segNota" placeholder="Nota (opcional): respuesta del proveedor, fecha de reenvío, acuerdo..." style="width:100%;min-height:70px;margin-top:6px;">'+esc(s.nota||'')+'</textarea>';
+h+=segTimelineHtml(id);
 if(s.por)h+='<p style="font-size:11.5px;color:var(--muted);margin:6px 0 0;">Último cambio: '+esc(s.por)+(s.fecha?(' · '+esc(s.fecha)):'')+'</p>';
 h+='<button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal()">Cerrar</button>';
 openModal(h);}
-async function elegirSeg(id,estado){
-if(segBloqueado()){toast('🔒 Solo personal autorizado: introduce la clave de oficina.');abrirSegClave(id);return;}
-let nombre=segNombre();
-if(!nombre){nombre=(prompt('¿Quién graba el cambio? (tu nombre o rol, ej: Edgar / Jefa / Asistente)')||'').trim();if(!nombre){toast('⚠ Falta tu nombre: se registra quién cambió el estado');return;}try{localStorage.setItem(SEG_NOMBRE_KEY,nombre)}catch(e){}}
+function elegirSeg(id,estado){
 const nota=((document.getElementById('segNota')||{}).value||'').trim();
-const prev=segMap[id]||null;
-if(!confirm('¿Desea grabar el estado "'+estado+'" a nombre de '+nombre+'?\n\n'+(nota?('Nota: '+nota+'\n\n'):'')+'Todos los que abran la app verán este estado.'))return;
-segMap[id]={estado:estado,nota:nota,por:nombre,fecha:new Date().toLocaleString('es-PE')};
-try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}
-renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);closeModal();
-try{await apiPost('segSave',{id:id,estado:estado,nota:nota,por:nombre,clave:segClave()});}
-catch(e){const m=String((e&&e.message)||e||'');
-if(m.indexOf('CLAVE')>=0){if(prev)segMap[id]=prev;else delete segMap[id];try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(x){}try{localStorage.removeItem(SEG_CLAVE_KEY)}catch(x){}toast('🔒 Clave incorrecta. Pide la clave de oficina a Edgar.');abrirSegClave(id);return;}
-if(!_segWarned){_segWarned=true;toast('ℹ Estado guardado en este equipo. Instala el parche Code.gs (guía adjunta) para que se vea en todos los celulares.');}}}
+segGuardar(id,'estado',estado,nota);}
 async function cargarSeg(){
 try{const j=await apiPost('segGet');
-if(j&&j.seguimiento){segMap=j.seguimiento;try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}_segWarned=false;
-renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);}}catch(e){}}
+if(j&&j.seguimiento){segMap=j.seguimiento;segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}_segWarned=false;
+renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();}}catch(e){}}
 function abrirSegClave(id){
 let h='<h4>🔑 Clave de oficina</h4>';
 h+='<p style="font-size:12.5px;line-height:1.6;color:var(--muted);">Con la clave puedes grabar el estado del seguimiento a tu nombre. Pídela a Edgar por WhatsApp; se guarda solo en este celular y sirve para Edgar, la jefa o el asistente.</p>';
@@ -2055,10 +2071,90 @@ if(!n){toast('⚠ Escribe tu nombre o rol');return;}
 try{localStorage.setItem(SEG_CLAVE_KEY,c);localStorage.setItem(SEG_NOMBRE_KEY,n)}catch(e){}
 toast('🔓 Modo oficina activado: '+n);
 if(id)abrirSeg(id);else closeModal();}
+/* ===== v8.5: HISTÓRICO DE SEGUIMIENTO (eventos con fecha y hora) ===== */
+function segNormalize(){Object.keys(segMap).forEach(k=>{const s=segMap[k]||{};if(!s.events||!s.events.length){s.events=[{ts:s.fecha||'',tipo:'estado',estado:s.estado||'Pendiente',nota:s.nota||'',por:s.por||''}];}});}
+function segTsParse(t){const m=String(t||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+if(m)return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+(m[6]||0));
+const d=new Date(String(t||''));return isNaN(d)?null:d;}
+function segDiasTxt(a,b){if(!a||!b)return'—';const d=(b-a)/86400000;return (d<0?0:d).toFixed(d<10?1:0)+' días';}
+function segCaso(id){const s=segMap[id]||{};const ev=(s.events||[]).slice().sort((a,b)=>(segTsParse(a.ts)||0)-(segTsParse(b.ts)||0));
+let enviado=null,resp=null,cerrado=null;
+ev.forEach(e=>{const t=segTsParse(e.ts);if(!t)return;
+if(e.estado==='En proceso'&&!enviado)enviado=t;
+if(e.tipo==='respuesta'&&!resp)resp=t;
+if(e.estado==='Cerrado'&&!cerrado)cerrado=t;});
+const last=ev.length?ev[ev.length-1]:null;
+return{ev:ev,estado:(s.estado||(last?last.estado:'Pendiente')),enviado:enviado,resp:resp,cerrado:cerrado,ultimo:(last?segTsParse(last.ts):null),last:last};}
+function segTipoIcon(t){return t==='respuesta'?'📥':t==='nota'?'📝':'🔄';}
+function segTipoTxt(t){return t==='respuesta'?'Proveedor respondió':t==='nota'?'Nota interna':'Cambio de estado';}
+function segTimelineHtml(id){const c=segCaso(id);if(!c.ev.length)return'';
+let h='<div class="secTitle">🕐 Historial del caso (fechas y horas)</div>';
+c.ev.slice().reverse().forEach(e=>{h+='<div style="border-left:3px solid '+(e.tipo==='respuesta'?'var(--warn)':'var(--accent)')+';background:var(--bg);border-radius:6px;padding:6px 10px;margin:6px 0;"><b style="font-size:12.5px;">'+segTipoIcon(e.tipo)+' '+segTipoTxt(e.tipo)+(e.estado&&e.tipo==='estado'?' · '+esc(e.estado):'')+'</b><p style="font-size:11.5px;color:var(--muted);margin:2px 0 0;">'+esc(e.ts||'')+(e.por?(' · por '+esc(e.por)):'')+'</p>'+(e.nota?'<p style="font-size:12px;margin:4px 0 0;">'+esc(e.nota)+'</p>':'')+'</div>';});
+let met='';
+if(c.enviado)met+='<span class="badge" style="margin-right:6px;">📤 Enviado: '+c.enviado.toLocaleDateString('es-PE')+'</span>';
+if(c.resp)met+='<span class="badge" style="margin-right:6px;">📥 1.ª respuesta: '+segDiasTxt(c.enviado,c.resp)+'</span>';
+if(c.cerrado)met+='<span class="badge">✅ Cierre: '+segDiasTxt(c.enviado,c.cerrado)+'</span>';
+if(met)h+='<div style="margin-top:6px;">'+met+'</div>';
+return h;}
+async function segGuardar(id,tipo,estado,nota){
+if(segBloqueado()){toast('🔒 Solo personal autorizado: introduce la clave de oficina.');abrirSegClave(id);return;}
+let nombre=segNombre();
+if(!nombre){nombre=(prompt('¿Quién graba? (tu nombre o rol, ej: Edgar / Jefa / Asistente)')||'').trim();if(!nombre){toast('⚠ Falta tu nombre: se registra quién hizo el cambio');return;}try{localStorage.setItem(SEG_NOMBRE_KEY,nombre)}catch(e){}}
+const que=tipo==='estado'?('el estado "'+estado+'"'):tipo==='respuesta'?'la RESPUESTA del proveedor':'la nota';
+if(!confirm('¿Desea grabar '+que+' a nombre de '+nombre+'?'+(nota?('\n\nNota: '+nota):'')+'\n\nQuedará con fecha y hora en el historial del caso.'))return;
+const d=(allDocs.find(x=>x.id===id)||allRecs.find(x=>x.id===id))||{};
+const prev=segMap[id]||null;
+const ts=new Date().toLocaleString('es-PE');
+const ev={ts:ts,tipo:tipo,estado:estado,nota:nota||'',por:nombre};
+try{const base=prev&&prev.events?prev.events.slice():[];base.push(ev);
+segMap[id]={estado:tipo==='estado'?estado:(prev?prev.estado:estado),nota:nota||(prev?prev.nota:''),por:nombre,fecha:ts,events:base};
+localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}
+renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();abrirSeg(id);
+try{const j=await apiPost('segSave',{id:id,estado:ev.estado,nota:ev.nota,por:nombre,clave:segClave(),tipo:tipo,proveedor:(d.proveedor||''),oc:(d.oc||'')});
+if(j&&j.seguimiento){segMap=j.seguimiento;segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}}
+renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();
+if(document.getElementById('modalBg').classList.contains('show'))abrirSeg(id);}
+catch(e){const m=String((e&&e.message)||e||'');
+if(m.indexOf('CLAVE')>=0){if(prev)segMap[id]=prev;else delete segMap[id];try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(x){}try{localStorage.removeItem(SEG_CLAVE_KEY)}catch(x){}toast('🔒 Clave incorrecta. Pide la clave de oficina a Edgar.');abrirSegClave(id);return;}
+if(!_segWarned){_segWarned=true;toast('ℹ Grabado en este celular. Falta actualizar el Code.gs en Apps Script para que se vea en todos.');}}}
+function registrarRespSeg(id){const nota=(prompt('¿Qué respondió el proveedor? (opcional — ej: "no acepta el reclamo, se reenvía el 21")')||'').trim();segGuardar(id,'respuesta',(segMap[id]||{}).estado||'En proceso',nota);}
+function registrarNotaSeg(id){const nota=(prompt('Nota para el historial (ej: se reenvió el informe el 21/10)')||'').trim();if(!nota){toast('Escribe la nota primero');return;}segGuardar(id,'nota',(segMap[id]||{}).estado||'Pendiente',nota);}
+function renderSegHistCard(){
+const el=document.getElementById('segHistCard');if(!el)return;
+const ids=Object.keys(segMap);
+const rows=ids.map(id=>({id:id,c:segCaso(id),r:(allRecs.find(x=>x.id===id)||allDocs.find(x=>x.id===id)||{})})).filter(x=>x.c.ev.length);
+rows.sort((a,b)=>((b.c.ultimo||0)-(a.c.ultimo||0)));
+const enProc=rows.filter(x=>x.c.estado==='En proceso').length,cerr=rows.filter(x=>x.c.estado==='Cerrado').length;
+const dias=rows.filter(x=>x.c.enviado&&x.c.cerrado).map(x=>(x.c.cerrado-x.c.enviado)/86400000);
+const promDias=dias.length?(dias.reduce((a,b)=>a+b,0)/dias.length):null;
+let h='<div class="stats" style="margin-bottom:10px;">';
+h+='<div class="stat"><b>'+rows.length+'</b><span>Casos con seguimiento</span></div>';
+h+='<div class="stat"><b>'+enProc+'</b><span>En proceso</span></div>';
+h+='<div class="stat"><b>'+cerr+'</b><span>Cerrados</span></div>';
+h+='<div class="stat"><b>'+(promDias!=null?promDias.toFixed(1)+' días':'—')+'</b><span>Prom. envío → cierre</span></div></div>';
+if(!rows.length){h+='<div class="empty">Aún no hay seguimientos. Toca el chip del estado (en un registro RECHAZADO) para empezar; cada cambio queda con fecha y hora.</div>';el.innerHTML=h;return;}
+h+='<div style="overflow:auto;"><table><thead><tr><th>Reporte</th><th>Proveedor</th><th>OC</th><th>Estado</th><th>Enviado</th><th>1.ª resp.</th><th>Cierre</th><th>Días</th><th></th></tr></thead><tbody>';
+rows.forEach(x=>{const c=x.c;
+h+='<tr><td>'+esc(x.r.fecha||'—')+'</td><td>'+esc(x.r.proveedor||'—')+'</td><td>'+esc(x.r.oc||'—')+'</td><td>'+segChipHtml(x.id)+'</td><td>'+(c.enviado?c.enviado.toLocaleDateString('es-PE'):'—')+'</td><td>'+(c.resp?segDiasTxt(c.enviado,c.resp):'—')+'</td><td>'+(c.cerrado?c.cerrado.toLocaleDateString('es-PE'):'—')+'</td><td>'+(c.enviado?segDiasTxt(c.enviado,c.cerrado||new Date()):'—')+'</td><td><button class="viewbtn" onclick="abrirSeg(\''+x.id+'\')">Ver historial</button></td></tr>';});
+h+='</tbody></table></div>';
+const provs={};
+rows.forEach(x=>{const p=String(x.r.proveedor||'—').trim().toUpperCase()||'—';(provs[p]=provs[p]||[]).push(x);});
+const pArr=Object.keys(provs).map(p=>{const xs=provs[p];
+const dr=xs.filter(x=>x.c.enviado&&x.c.resp).map(x=>(x.c.resp-x.c.enviado)/86400000);
+const dc=xs.filter(x=>x.c.enviado&&x.c.cerrado).map(x=>(x.c.cerrado-x.c.enviado)/86400000);
+return{p:p,n:xs.length,cerr:xs.filter(x=>x.c.estado==='Cerrado').length,
+promR:dr.length?dr.reduce((a,b)=>a+b,0)/dr.length:null,
+promC:dc.length?dc.reduce((a,b)=>a+b,0)/dc.length:null,
+lento:dc.length?Math.max.apply(null,dc):null};});
+pArr.sort((a,b)=>((b.lento||0)-(a.lento||0)));
+h+='<div class="secTitle">⏱ Eficiencia por proveedor (más lentos primero)</div><div style="overflow:auto;"><table><thead><tr><th>Proveedor</th><th>Casos</th><th>Cerrados</th><th>Prom. 1.ª respuesta</th><th>Prom. cierre</th><th>Peor caso</th></tr></thead><tbody>';
+pArr.forEach(p=>{h+='<tr><td>'+esc(p.p)+'</td><td>'+p.n+'</td><td>'+p.cerr+'</td><td>'+(p.promR!=null?p.promR.toFixed(1)+' días':'—')+'</td><td>'+(p.promC!=null?p.promC.toFixed(1)+' días':'—')+'</td><td>'+(p.lento!=null?p.lento.toFixed(1)+' días':'—')+'</td></tr>';});
+h+='</tbody></table></div>';
+el.innerHTML=h;}
 function verHistorialApp(){
 let h='<h4>ℹ️ Historial de la app</h4>';
 h+='<p style="font-size:12px;color:var(--muted);line-height:1.6;">Cambios por versión. El expediente completo vive en el archivo <b>EXPEDIENTE_TRASPASO_GRUPOSOLE.txt</b>: guárdalo en tu Drive; en cada entrega pide la versión nueva de este historial.</p>';
-const HIST=[['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
+const HIST=[['v8.5.0','Histórico de seguimiento: cada cambio de estado, respuesta del proveedor y nota queda con fecha y hora. Nueva tarjeta "🕐 Seguimiento a proveedores" (Hist. Nacionales) con días de respuesta/cierre y eficiencia por proveedor. Fotos que se reparan solas (permiso de Drive + respaldo por servidor). Fechas tolerantes: registros pegados a mano en Sheets (ej. 20/10/2026) ya aparecen en la app. Eliminar registro pide clave de administrador.'],['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
 HIST.forEach(function(x){h+='<div style="border-left:3px solid var(--accent);padding:6px 10px;margin:8px 0;background:var(--bg);border-radius:6px;"><b style="font-size:12.5px;">'+x[0]+'</b><p style="font-size:12px;line-height:1.55;margin:3px 0 0;">'+x[1]+'</p></div>';});
 h+='<button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal()">Cerrar</button>';
 openModal(h);}
@@ -2075,7 +2171,7 @@ syncQueue();mqRun();
 const ok=await cargarDatos(false);
 if(ok===false){toast('⚠ Sin conexión — no se pudo actualizar ahora');return;}
 await cargarSeg();
-toast('✅ Actualizado: '+allDocs.length+' inspecciones · '+allRecs.length+' recepciones'+(Object.keys(segMap).length?(' · '+Object.keys(segMap).length+' seguimientos'):''));}
+toast('✅ Sheets: '+allDocs.length+' inspecciones · '+allRecs.length+' recepciones · '+Object.keys(segMap).length+' seguimientos. ¿Falta alguno? Toca «📅 Ver días anteriores / todo»');}
 catch(e){toast('⚠ No se pudo actualizar: '+e.message);}}
 
 // ===================== AUTENTICACIÓN v8.0–v8.2 (Grupo Sole) =====================
