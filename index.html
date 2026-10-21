@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><!--v8.5.0-->
+<meta charset="UTF-8"><!--v8.5.1-->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grupo Sole · Control de Calidad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -519,7 +519,7 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbziCI43x5Ln-mhS5FNvFGVBdKYuqQYyNVtYcXJKUjDXvsEpyf30Ox5JkLzIA1H_oJGL/exec';
 let allDocs=[],allRecs=[],allEnvios=[],catalogo=[],saving=false,cargando=false,pendingMedia=[],pendingMediaRec=[],savingRec=false,defMediaSeq=0;
-let segMap={},_segWarned=false,_orphanN=[],_orphanR=[];const SEG_KEY='sole_seg_cache_v1';
+let segMap={},_segWarned=false,_orphanN=[],_orphanR=[],_segServOk=null,_segServIds={},_segServCount=0,_segPushTried={};const SEG_KEY='sole_seg_cache_v1';
 const SEG_CLAVE_KEY='sole_seg_clave_v1',SEG_NOMBRE_KEY='sole_seg_nombre_v1';
 function segClave(){try{return localStorage.getItem(SEG_CLAVE_KEY)||''}catch(e){return ''}}
 function segNombre(){try{return localStorage.getItem(SEG_NOMBRE_KEY)||''}catch(e){return ''}}
@@ -1439,12 +1439,12 @@ const tr=document.createElement('tr');
 tr.innerHTML='<td style="text-align:center;"><input type="checkbox" class="selRow" value="'+esc(d.id)+'"></td><td>'+esc(d.fecha)+'</td><td>'+esc(d.linea)+'</td><td>'+esc(d.codigo)+'</td><td>'+esc(d.inspector)+'</td><td>'+fmtDur(d.horasHombre)+'</td><td>'+((d.defectos||[]).length||'')+'</td><td><span class="tag" style="'+scol+'">'+esc(st)+'</span>'+((st==='RECHAZADO')?segChipHtml(d.id):'')+'<button class="viewbtn" onclick="verDoc(\''+d.id+'\')">Ver</button><button class="delbtn" onclick="delDoc(\''+d.id+'\')">🗑</button></td>';
 tb.appendChild(tr);});
 const bar=document.getElementById('histScopeBar');
-if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._histScope==='hoy'?'solo HOY':'período filtrado'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setHistScope(\''+(window._histScope==='hoy'?'todo':'hoy')+'\')">'+(window._histScope==='hoy'?'📅 Ver días anteriores / todo':'📍 Ver solo HOY')+'</button>';
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._histScope==='hoy'?'solo HOY ('+hoyLocal()+')':'período filtrado'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setHistScope(\''+(window._histScope==='hoy'?'todo':'hoy')+'\')">'+(window._histScope==='hoy'?'📅 Ver días anteriores / todo':'📍 Ver solo HOY')+'</button>';
 const more=document.getElementById('histMore');
 if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más registros ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
 const he=document.getElementById('histEmpty');
 he.style.display=vis.length?'none':'block';
-if(!vis.length)he.textContent=allDocs.length?'Sin registros en este alcance — usa el botón de arriba para ver más.':'Aún no hay inspecciones registradas.';
+if(!vis.length)he.textContent=allDocs.length?(window._histScope==='hoy'?'Sin registros HOY ('+hoyLocal()+'). Los anteriores NO se borraron: pica «📅 Ver días anteriores / todo».':'Sin registros en este alcance — usa el botón de arriba para ver más.'):'Aún no hay inspecciones registradas.';
 }
 function setHistScope(s){window._histScope=s;window._histLim=12;renderHistory();}
 function moreHistRows(){renderHistRows((window._histLim||12)+12);}
@@ -1475,7 +1475,7 @@ const tr=document.createElement('tr');
 tr.innerHTML='<td>'+esc(r.fecha)+'</td><td>'+esc(r.proveedor)+'</td><td>'+esc(r.oc)+'<br>'+esc(r.guia)+'</td><td><span class="tag" style="'+cls+'">'+esc(r.dictamen)+'</span></td><td>'+((r.dictamen==='RECHAZADO')?segChipHtml(r.id):'')+'<button class="viewbtn" onclick="verRec(\''+r.id+'\')">Ver</button><button class="delbtn" onclick="delRec(\''+r.id+'\')">🗑</button></td>';
 tb.appendChild(tr);});
 const bar=document.getElementById('recScopeBar');
-if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recScope==='hoy'?'solo HOY':'todo'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecScope(\''+(window._recScope==='hoy'?'todo':'hoy')+'\')">'+(window._recScope==='hoy'?'📅 Ver todas':'📍 Ver solo HOY')+'</button>';
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recScope==='hoy'?'solo HOY ('+hoyLocal()+')':'todo'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecScope(\''+(window._recScope==='hoy'?'todo':'hoy')+'\')">'+(window._recScope==='hoy'?'📅 Ver todas':'📍 Ver solo HOY')+'</button>';
 const more=document.getElementById('recMore');
 if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más registros ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
 document.getElementById('recEmpty').style.display=vis.length?'none':'block';
@@ -1571,12 +1571,12 @@ const tr=document.createElement('tr');
 tr.innerHTML='<td style="text-align:center;"><input type="checkbox" class="selRowNac" value="'+esc(r.id)+'"></td><td>'+esc(r.fecha)+'</td><td>'+esc(r.proveedor)+'</td><td>'+esc(r.oc)+' / '+esc(r.guia)+'</td><td>'+((r.items||[]).map(i=>esc(i.codigo)).join('; ')||'—')+'</td><td><span class="tag" style="'+cls+'">'+esc(r.dictamen)+'</span></td><td>'+((r.dictamen==='RECHAZADO')?segChipHtml(r.id):'')+'<button class="viewbtn" onclick="verRec(\''+r.id+'\')">Ver</button><button class="delbtn" onclick="delRec(\''+r.id+'\')">🗑</button></td>';
 tb.appendChild(tr);});
 const bar=document.getElementById('recHistScopeBar');
-if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recHScope==='hoy'?'solo HOY':'período filtrado'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecHistScope(\''+(window._recHScope==='hoy'?'todo':'hoy')+'\')">'+(window._recHScope==='hoy'?'📅 Ver días anteriores / todo':'📍 Ver solo HOY')+'</button>';
+if(bar)bar.innerHTML='<span class="hint" style="margin:0;">'+(vis.length?(lim===vis.length?vis.length+' registros':'Mostrando '+lim+' de '+vis.length)+' · '+(window._recHScope==='hoy'?'solo HOY ('+hoyLocal()+')':'período filtrado'):'Sin registros en este alcance')+'</span><button class="btn btn-ghost btn-sm" onclick="setRecHistScope(\''+(window._recHScope==='hoy'?'todo':'hoy')+'\')">'+(window._recHScope==='hoy'?'📅 Ver días anteriores / todo':'📍 Ver solo HOY')+'</button>';
 const more=document.getElementById('recHistMore');
 if(more){if(vis.length>lim){more.style.display='block';more.textContent='▼ Ver más registros ('+(vis.length-lim)+' restantes)';}else more.style.display='none';}
 const he=document.getElementById('recHistEmpty');
 he.style.display=vis.length?'none':'block';
-if(!vis.length)he.textContent=allRecs.length?'Sin registros en este alcance — usa el botón de arriba para ver más.':'Aún no hay registros de Nacionales.';
+if(!vis.length)he.textContent=allRecs.length?(window._recHScope==='hoy'?'Sin registros HOY ('+hoyLocal()+'). Los anteriores NO se borraron: pica «📅 Ver días anteriores / todo».':'Sin registros en este alcance — usa el botón de arriba para ver más.'):'Aún no hay registros de Nacionales.';
 }
 function setRecHistScope(s){window._recHScope=s;window._recHLim=12;renderNacHistory();}
 function moreRecHistRows(){renderRecHistRows((window._recHLim||12)+12);}
@@ -2053,8 +2053,45 @@ const nota=((document.getElementById('segNota')||{}).value||'').trim();
 segGuardar(id,'estado',estado,nota);}
 async function cargarSeg(){
 try{const j=await apiPost('segGet');
-if(j&&j.seguimiento){segMap=j.seguimiento;segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}_segWarned=false;
-renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();}}catch(e){}}
+if(j&&j.seguimiento&&typeof j.seguimiento==='object'){_segServOk=true;_segServIds={};Object.keys(j.seguimiento).forEach(k=>_segServIds[k]=1);_segServCount=Object.keys(_segServIds).length;
+segMap=segMerge(j.seguimiento);segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}_segWarned=false;
+renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();
+segPushPendientes(j.seguimiento);}
+else{_segServOk=false;}}catch(e){_segServOk=false;}}
+/* v8.5.1 — FUSIÓN anti-pérdida: el servidor NUNCA pisa lo local. Los casos que
+   están en ambos lados unen sus eventos (sin duplicados); los que están solo
+   aquí se conservan y luego se suben solos. */
+function segMerge(servMap){
+servMap=servMap||{};const local=parseJ(localStorage.getItem(SEG_KEY),{})||{};
+const ids={};Object.keys(local).forEach(k=>ids[k]=1);Object.keys(servMap).forEach(k=>ids[k]=1);
+const out={};
+Object.keys(ids).forEach(id=>{
+const L=local[id],S=servMap[id];
+if(L&&!S){out[id]=L;return;}
+if(!L&&S){out[id]=S;return;}
+const seen={},ev=[];
+[].concat(L.events||[],S.events||[]).forEach(e=>{if(!e)return;const k=[e.ts,e.tipo,e.estado,e.por,e.nota].join('¦');if(!seen[k]){seen[k]=1;ev.push(e);}});
+ev.sort((a,b)=>(segTsParse(a.ts)||0)-(segTsParse(b.ts)||0));
+const last=ev.length?ev[ev.length-1]:null;
+out[id]={estado:(last?last.estado:(S.estado||L.estado||'Pendiente')),nota:(last&&last.nota)||(L.nota||S.nota||''),por:(last&&last.por)||(S.por||L.por||''),fecha:(last&&last.ts)||(S.fecha||L.fecha||''),events:ev};});
+return out;}
+/* v8.5.1 — SUBIDA AUTOMÁTICA: casos grabados sin backend (quedaron en este
+   equipo) se empujan a Sheets en cuanto el backend responde. Requiere clave
+   de oficina; si falla, el caso sigue aquí (no se pierde nada). */
+async function segPushPendientes(servMap){
+servMap=servMap||{};
+if(!segClave())return;
+const pend=Object.keys(segMap).filter(id=>!servMap[id]&&!_segPushTried[id]);
+for(const id of pend){
+_segPushTried[id]=1;
+const c=segCaso(id);const last=c.last;if(!last)continue;
+const d=(allRecs.find(x=>x.id===id)||allDocs.find(x=>x.id===id))||{};
+try{const j=await apiPost('segSave',{id:id,estado:last.estado,nota:last.nota||'',por:last.por||segNombre(),clave:segClave(),tipo:last.tipo||'estado',proveedor:(d.proveedor||''),oc:(d.oc||'')});
+if(j&&j.seguimiento&&j.seguimiento[id]){segMap[id]=j.seguimiento[id];_segServIds[id]=1;_segServCount=Object.keys(_segServIds).length;
+try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}
+renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();
+toast('☁️ Seguimiento de '+(d.proveedor||'el caso')+' subido a Sheets');}}
+catch(e){if(String((e&&e.message)||e).indexOf('CLAVE')>=0){try{localStorage.removeItem(SEG_CLAVE_KEY)}catch(x){}}}}}
 function abrirSegClave(id){
 let h='<h4>🔑 Clave de oficina</h4>';
 h+='<p style="font-size:12.5px;line-height:1.6;color:var(--muted);">Con la clave puedes grabar el estado del seguimiento a tu nombre. Pídela a Edgar por WhatsApp; se guarda solo en este celular y sirve para Edgar, la jefa o el asistente.</p>';
@@ -2111,7 +2148,7 @@ segMap[id]={estado:tipo==='estado'?estado:(prev?prev.estado:estado),nota:nota||(
 localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}
 renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();abrirSeg(id);
 try{const j=await apiPost('segSave',{id:id,estado:ev.estado,nota:ev.nota,por:nombre,clave:segClave(),tipo:tipo,proveedor:(d.proveedor||''),oc:(d.oc||'')});
-if(j&&j.seguimiento){segMap=j.seguimiento;segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}}
+if(j&&j.seguimiento&&typeof j.seguimiento==='object'){_segServOk=true;_segServIds={};Object.keys(j.seguimiento).forEach(k=>_segServIds[k]=1);_segServCount=Object.keys(_segServIds).length;segMap=segMerge(j.seguimiento);if(j.seguimiento[id])segMap[id]=j.seguimiento[id];segNormalize();try{localStorage.setItem(SEG_KEY,JSON.stringify(segMap))}catch(e){}_segWarned=false;segPushPendientes(j.seguimiento);}
 renderHistRows(window._histLim||12);renderRecRows(window._recLim||12);renderRecHistRows(window._recHLim||12);renderSegHistCard();
 if(document.getElementById('modalBg').classList.contains('show'))abrirSeg(id);}
 catch(e){const m=String((e&&e.message)||e||'');
@@ -2119,6 +2156,13 @@ if(m.indexOf('CLAVE')>=0){if(prev)segMap[id]=prev;else delete segMap[id];try{loc
 if(!_segWarned){_segWarned=true;toast('ℹ Grabado en este celular. Falta actualizar el Code.gs en Apps Script para que se vea en todos.');}}}
 function registrarRespSeg(id){const nota=(prompt('¿Qué respondió el proveedor? (opcional — ej: "no acepta el reclamo, se reenvía el 21")')||'').trim();segGuardar(id,'respuesta',(segMap[id]||{}).estado||'En proceso',nota);}
 function registrarNotaSeg(id){const nota=(prompt('Nota para el historial (ej: se reenvió el informe el 21/10)')||'').trim();if(!nota){toast('Escribe la nota primero');return;}segGuardar(id,'nota',(segMap[id]||{}).estado||'Pendiente',nota);}
+function segServChipsHtml(){
+let c='';
+if(_segServOk===true)c+='<div style="display:inline-block;background:#E7F6EC;color:#1B7A3D;border:1px solid #BFE6CC;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;margin:0 6px 8px 0;">\u2601\ufe0f Sincronizado con Sheets \u00b7 '+_segServCount+' caso(s) en la nube</div>';
+else if(_segServOk===false)c+='<div style="display:inline-block;background:#FFF6E5;color:#8A5B00;border:1px solid #F0DBB0;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;margin:0 6px 8px 0;">\ud83d\udcbe Seguimientos guardados SOLO en este equipo \u2014 para que todos los vean: pega el Code.gs v8.5 en Apps Script (reemplazo total) y Desplegar \u2192 \u00abNueva versi\u00f3n\u00bb</div>';
+const pend=Object.keys(segMap).filter(id=>!_segServIds[id]).length;
+if(_segServOk===true&&pend>0&&segClave())c+='<div style="display:inline-block;background:#EAF1FB;color:#2456A6;border:1px solid #C6D8F2;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;">\u23f3 '+pend+' caso(s) por subir a Sheets \u2014 pica \u00ab\ud83d\udd04 Actualizar desde Sheets\u00bb</div>';
+return c;}
 function renderSegHistCard(){
 const el=document.getElementById('segHistCard');if(!el)return;
 const ids=Object.keys(segMap);
@@ -2127,7 +2171,7 @@ rows.sort((a,b)=>((b.c.ultimo||0)-(a.c.ultimo||0)));
 const enProc=rows.filter(x=>x.c.estado==='En proceso').length,cerr=rows.filter(x=>x.c.estado==='Cerrado').length;
 const dias=rows.filter(x=>x.c.enviado&&x.c.cerrado).map(x=>(x.c.cerrado-x.c.enviado)/86400000);
 const promDias=dias.length?(dias.reduce((a,b)=>a+b,0)/dias.length):null;
-let h='<div class="stats" style="margin-bottom:10px;">';
+let h=segServChipsHtml()+'<div class="stats" style="margin-bottom:10px;">';
 h+='<div class="stat"><b>'+rows.length+'</b><span>Casos con seguimiento</span></div>';
 h+='<div class="stat"><b>'+enProc+'</b><span>En proceso</span></div>';
 h+='<div class="stat"><b>'+cerr+'</b><span>Cerrados</span></div>';
@@ -2154,7 +2198,7 @@ el.innerHTML=h;}
 function verHistorialApp(){
 let h='<h4>ℹ️ Historial de la app</h4>';
 h+='<p style="font-size:12px;color:var(--muted);line-height:1.6;">Cambios por versión. El expediente completo vive en el archivo <b>EXPEDIENTE_TRASPASO_GRUPOSOLE.txt</b>: guárdalo en tu Drive; en cada entrega pide la versión nueva de este historial.</p>';
-const HIST=[['v8.5.0','Histórico de seguimiento: cada cambio de estado, respuesta del proveedor y nota queda con fecha y hora. Nueva tarjeta "🕐 Seguimiento a proveedores" (Hist. Nacionales) con días de respuesta/cierre y eficiencia por proveedor. Fotos que se reparan solas (permiso de Drive + respaldo por servidor). Fechas tolerantes: registros pegados a mano en Sheets (ej. 20/10/2026) ya aparecen en la app. Eliminar registro pide clave de administrador.'],['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
+const HIST=[['v8.5.1','ANTI-PÉRDIDA del seguimiento: lo que graba la oficina ya NO se borra al actualizar. La app fusiona lo local con Sheets (nunca pisa), avisa con ☁️/💾 si está sincronizado y SUBE SOLA los casos que quedaron trabados en un equipo. Tablas vacías ahora explican que es el filtro HOY.'],['v8.5.0','Histórico de seguimiento: cada cambio de estado, respuesta del proveedor y nota queda con fecha y hora. Nueva tarjeta "🕐 Seguimiento a proveedores" (Hist. Nacionales) con días de respuesta/cierre y eficiencia por proveedor. Fotos que se reparan solas (permiso de Drive + respaldo por servidor). Fechas tolerantes: registros pegados a mano en Sheets (ej. 20/10/2026) ya aparecen en la app. Eliminar registro pide clave de administrador.'],['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
 HIST.forEach(function(x){h+='<div style="border-left:3px solid var(--accent);padding:6px 10px;margin:8px 0;background:var(--bg);border-radius:6px;"><b style="font-size:12.5px;">'+x[0]+'</b><p style="font-size:12px;line-height:1.55;margin:3px 0 0;">'+x[1]+'</p></div>';});
 h+='<button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal()">Cerrar</button>';
 openModal(h);}
