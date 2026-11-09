@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><!--v8.5.1--><!--v8.6--><!--v8.7-->
+<meta charset="UTF-8"><!--v8.5.1--><!--v8.6--><!--v8.7--><!--v8.8-->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Grupo Sole · Control de Calidad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -186,7 +186,7 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 <div class="tab" data-tab="recepcion">📥 Nacionales</div>
 <div class="tab" data-tab="histprod">📊 Hist. Producción</div>
 <div class="tab" data-tab="histnac">📈 Hist. Nacionales</div>
-<div class="tab" data-tab="pruebas">🧪 Pruebas y apoyo</div>
+<div class="tab" data-tab="pruebas">🧪 Pruebas de calidad</div>
 <div class="tab" data-tab="usuarios" id="tabBtnUsuarios" style="display:none;">🔐 Usuarios</div>
 </div>
 
@@ -477,18 +477,20 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 </div></div>
 </div>
 <div id="tab-pruebas" style="display:none;">
-<div class="card"><h3>🧪 Actividad de apoyo — trazabilidad de la jornada</h3><div class="body">
-<div class="hint" style="margin-bottom:10px;">Registra lo que el inspector hace el resto del día: <b>pirómetro</b>, <b>anemómetro</b>, <b>conversión de producto</b>, <b>revisión funcional de productos importados</b>, <b>manómetros de servicio técnico</b>, etc. Así la jefa ve con qué se cubre el tiempo que no sale en las inspecciones — nada queda "en nada".</div>
+<div class="card"><h3>🧪 Pruebas específicas e inspecciones de calidad — trazabilidad de la jornada</h3><div class="body">
+<div class="hint" style="margin-bottom:10px;">Registra las <b>pruebas específicas</b> y <b>inspecciones de calidad</b> del día: <b>pirómetro</b>, <b>anemómetro</b>, <b>conversión de producto</b>, <b>revisión funcional de productos importados</b>, <b>manómetros de servicio técnico</b> y <b>apoyo en inspección en línea de calidad</b>. Agrega FOTOS DE EVIDENCIA a cada actividad y emite el 📄 informe de la jornada — así la jefa ve con qué se cubre todo el tiempo, nada queda "en nada".</div>
 <div class="grid2">
 <div class="field"><label>Fecha</label><input type="date" id="p_fecha"></div>
-<div class="field"><label>Tipo de actividad</label><select id="p_act" onchange="pActChange();saveDraftPrueba()"><option>Revisión funcional — producto importado</option><option>Prueba con pirómetro</option><option>Prueba con anemómetro</option><option>Conversión de producto</option><option>Revisión de manómetros — servicio técnico</option><option>Apoyo en línea de producción</option><option value="__OTRO__">Otra (escribir)</option></select></div>
+<div class="field"><label>Tipo de actividad</label><select id="p_act" onchange="pActChange();saveDraftPrueba()"><option>Revisión funcional — producto importado</option><option>Prueba con pirómetro</option><option>Prueba con anemómetro</option><option>Conversión de producto</option><option>Revisión de manómetros — servicio técnico</option><option>Apoyo en Inspección en Línea de Calidad</option><option value="__OTRO__">Otra (escribir)</option></select></div>
 <div class="field" id="p_actOtroW" style="display:none;"><label>¿Cuál actividad?</label><input id="p_actOtro" class="upper" placeholder="DESCRIBE LA ACTIVIDAD" oninput="saveDraftPrueba()"></div>
-<div class="field"><label>Código / producto</label><input id="p_cod" class="upper" placeholder="Ej. SOLRAP001 (opcional)" oninput="this.value=this.value.toUpperCase();saveDraftPrueba()"></div>
+<div class="field" id="p_codW"><label>Código / producto</label><input id="p_cod" class="upper" placeholder="Ej. SOLRAP001 (opcional)" oninput="this.value=this.value.toUpperCase();saveDraftPrueba()"></div>
+<div class="field" id="p_tecW" style="display:none;"><label>👨‍🔧 Nombre del técnico (¿de quién es el manómetro?)</label><input id="p_tec" placeholder="Ej. Carlos Ramos — servicio técnico" oninput="saveDraftPrueba()"></div>
 <div class="field"><label>Cantidad</label><input type="number" id="p_cant" min="0" placeholder="Piezas / muestras (opcional)" oninput="saveDraftPrueba()"></div>
 <div class="field"></div>
 <div class="field"><label>⏱ Hora inicio</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="p_ini" onchange="pDurUpdate();saveDraftPrueba()" style="flex:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="pStamp('p_ini')">▶ Ahora</button></div></div>
 <div class="field"><label>⏱ Hora fin</label><div style="display:flex;gap:6px;align-items:center;"><input type="time" id="p_fin" onchange="pDurUpdate();saveDraftPrueba()" style="flex:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="pStamp('p_fin')">■ Fin</button></div></div>
 <div class="field" style="grid-column:1/-1;"><label>Detalle / nota (opcional)</label><input id="p_nota" placeholder="Ej. 12 termopares revisados, calibración OK..." oninput="saveDraftPrueba()"></div>
+<div class="field" style="grid-column:1/-1;"><label>📷 Evidencia fotográfica</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn btn-accent" onclick="document.getElementById('p_foto').click()">📷 Tomar foto</button><button type="button" class="btn btn-outline" onclick="document.getElementById('p_galeria').click()">🖼 Galería</button></div><input type="file" id="p_foto" accept="image/*" capture="environment" style="display:none;"><input type="file" id="p_galeria" accept="image/*" multiple style="display:none;"><div class="thumbs" id="pThumbs" style="margin-top:6px;"></div></div>
 </div>
 <div class="hint" id="p_dur" style="margin:6px 0;">⏱ Duración: —</div>
 <button class="btn btn-accent" style="width:100%;" onclick="guardarPrueba()">💾 Guardar actividad</button>
@@ -501,7 +503,7 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 </div>
 <table><thead><tr><th>Fecha</th><th>Horario</th><th>Duración</th><th>Actividad</th><th>Código</th><th>Cant.</th><th>Por</th><th></th></tr></thead><tbody id="pruebasBody"></tbody></table>
 <div id="pruebasEmpty" class="empty">Aún no hay actividades registradas.</div>
-<div class="row" style="margin-top:8px;"><button class="btn btn-ghost" onclick="forzarActualizacion()">🔄 Actualizar desde Sheets</button><span class="hint" style="margin:4px 0 0;">☁️ Se sincroniza con la hoja "Pruebas" del Excel — la jefa lo ve directo.</span></div>
+<div class="row" style="margin-top:8px;"><button class="btn btn-accent" onclick="informePruebas()">📄 Emitir informe</button><button class="btn btn-ghost" onclick="forzarActualizacion()">🔄 Actualizar desde Sheets</button><span class="hint" style="margin:4px 0 0;">☁️ Se sincroniza con la hoja "Pruebas" del Excel — la jefa lo ve directo.</span></div>
 </div></div>
 </div>
 <div id="tab-usuarios" style="display:none;">
@@ -547,8 +549,8 @@ tbody tr:hover{background:rgba(76,95,128,.08)}
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbziCI43x5Ln-mhS5FNvFGVBdKYuqQYyNVtYcXJKUjDXvsEpyf30Ox5JkLzIA1H_oJGL/exec';
-let allDocs=[],allRecs=[],allEnvios=[],catalogo=[],saving=false,cargando=false,pendingMedia=[],pendingMediaRec=[],savingRec=false,defMediaSeq=0;
-let segMap={},_segWarned=false,_orphanN=[],_orphanR=[],_segServOk=null,_segServIds={},_segServCount=0,_segPushTried={};const SEG_KEY='sole_seg_cache_v1';
+let allDocs=[],allRecs=[],allEnvios=[],catalogo=[],saving=false,cargando=false,pendingMedia=[],pendingMediaRec=[],pendingMediaPrueba=[],savingRec=false,defMediaSeq=0;
+let segMap={},_segWarned=false,_orphanN=[],_orphanR=[],_orphanP=[],_segServOk=null,_segServIds={},_segServCount=0,_segPushTried={};const SEG_KEY='sole_seg_cache_v1';
 const SEG_CLAVE_KEY='sole_seg_clave_v1',SEG_NOMBRE_KEY='sole_seg_nombre_v1';
 function segClave(){try{return localStorage.getItem(SEG_CLAVE_KEY)||''}catch(e){return ''}}
 function segNombre(){try{return localStorage.getItem(SEG_NOMBRE_KEY)||''}catch(e){return ''}}
@@ -651,7 +653,7 @@ allDocs=(j.inspecciones||[]).map(r=>({id:r.ID,fecha:fmtFecha(r.Fecha),linea:r.Li
 catalogo=(j.catalogo||[]).map(r=>({tipo:r.Tipo,linea:r.Linea,nombre:r.Nombre,defTipo:r.DefTipo}));
 allRecs=(j.recepciones||[]).map(r=>({id:r.ID,fecha:fmtFecha(r.Fecha),tipoIngreso:r.TipoIngreso,proveedor:r.Proveedor,inspector:r.Inspector,oc:r.OC,guia:r.Guia,factura:r.Factura,ficha:r.Ficha,horaInicio:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),tiempoHoras:Number(r.TiempoHoras)||0,items:parseJ(r.Items,[]),pruebas:parseJ(r.Pruebas,[]),resultado:r.Resultado,dictamen:dictamenDe(parseJ(r.Items,[])),observaciones:r.Observaciones||'',media:parseJ(r.Media,[])})).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
 allEnvios=(j.envios||[]).map(e=>({fecha:fmtFecha(e.Fecha),enviadoEn:fmtHora(e.EnviadoEn),insp:Number(e.Inspecciones)||0,rec:Number(e.Recepciones)||0,inc:Number(e.Incidencias)||0}));
-pruebasMergeServ((j.pruebas||[]).map(r=>({id:String(r.ID||''),fecha:r.Fecha||'',horaIni:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),durMin:Number(r.DurMin)||0,actividad:r.Actividad||'',codigo:r.Codigo||'',cantidad:Number(r.Cantidad)||0,nota:r.Nota||'',por:r.Por||''})));
+pruebasMergeServ((j.pruebas||[]).map(r=>({id:String(r.ID||''),fecha:r.Fecha||'',horaIni:fmtHora(r.HoraInicio),horaFin:fmtHora(r.HoraFin),durMin:Number(r.DurMin)||0,actividad:r.Actividad||'',codigo:r.Codigo||'',cantidad:Number(r.Cantidad)||0,nota:r.Nota||'',por:r.Por||'',tecnico:r.Tecnico||'',media:parseJ(r.Media,[])})));
 document.getElementById('histEmpty').style.display='none';
 fillLineaOptions();renderHistory();renderNacHistory();renderRecepciones();onLineaChange();renderBannerInforme();pintarObsChips();renderEvalExtras();renderTiemposCodigos();renderPruebas();
 document.querySelectorAll('#rItemsList .riT').forEach(s=>fillItemTipos(s));
@@ -679,7 +681,7 @@ onLineaChange();
 await initAuth();
 if(!window._mesAuto){window._mesAuto=1;selectMonth(mesLocal());}
 if(!window._mesAutoN){window._mesAutoN=1;selectMonthN(mesLocal());}
-setInterval(()=>cargarDatos(true),30000);
+setInterval(vigiaFechas,120000);setInterval(()=>cargarDatos(true),30000);
 }
 function draftHasContent(key){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(!d)return false;const f=d.fields||{};const hayCampo=Object.keys(f).some(k=>String(f[k]||'').trim()&&k!=='f_fecha'&&k!=='f_linea'&&k!=='f_hini'&&k!=='f_hfin'&&k!=='r_fecha'&&k!=='r_tipo'&&k!=='r_hini'&&k!=='r_hfin');return hayCampo||((d.defectos||[]).length||((d.codigos||[]).length)||((d.items||[]).length)||((d.insumos||[]).length)||((d.media||[]).length)||((d.pruebas||[]).length))>0;}catch(e){return false;}}
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
@@ -688,6 +690,7 @@ t.classList.add('active');
 ['nueva','recepcion','histprod','histnac','pruebas','usuarios'].forEach(n=>{document.getElementById('tab-'+n).style.display=(t.dataset.tab===n)?'block':'none';});
 if(t.dataset.tab==='histprod'){renderBannerInforme();renderPanel(filteredDocs());}
 if(t.dataset.tab==='histnac'){renderNacHistory();renderTiemposCodigos();}
+vigiaFechas();
 if(t.dataset.tab==='pruebas'){renderPruebas();}
 if(t.dataset.tab==='recepcion')renderRecepciones();
 if(t.dataset.tab==='usuarios'&&window.loadUsuarios)loadUsuarios();
@@ -1019,15 +1022,15 @@ const MQ_KEY='sole_media_queue_v1';
 const _mediaReg=new Set();
 let _mqBusy=false;
 function regMedia(arr){if(Array.isArray(arr)&&arr!==pendingMedia&&arr!==pendingMediaRec)_mediaReg.add(arr);}
-regMedia(_orphanN);regMedia(_orphanR);
+regMedia(_orphanN);regMedia(_orphanR);regMedia(_orphanP);
 function mqAllArrays(){return[pendingMedia,pendingMediaRec].concat([..._mediaReg]);}
 function mqPending(){const out=[];mqAllArrays().forEach(a=>a.forEach(m=>{if(m.pending&&m._data)out.push(m);}));return out;}
 function cleanMedia(m){return{url:m.url||'',thumb:m.thumb||'',driveId:m.driveId||'',type:m.type||'',name:m.name||''};}
 function saveMQ(){
 try{
 const items=[];
-[pendingMedia,pendingMediaRec].forEach((arr,ai)=>{
-arr.forEach(m=>{if(m.pending&&m._data&&m._data.length<500000)items.push({s:ai?'recepcion':'nueva',d:m._data,mime:m._mime||'image/jpeg',name:m.name||'',type:m.type||'image/jpeg'});});
+[pendingMedia,pendingMediaRec,pendingMediaPrueba].forEach((arr,ai)=>{
+arr.forEach(m=>{if(m.pending&&m._data&&m._data.length<500000)items.push({s:ai===1?'recepcion':(ai===2?'prueba':'nueva'),d:m._data,mime:m._mime||'image/jpeg',name:m.name||'',type:m.type||'image/jpeg'});});
 });
 localStorage.setItem(MQ_KEY,JSON.stringify(items.slice(0,8)));
 }catch(e){}
@@ -1035,9 +1038,9 @@ localStorage.setItem(MQ_KEY,JSON.stringify(items.slice(0,8)));
 function restoreMQ(){
 try{
 const items=JSON.parse(localStorage.getItem(MQ_KEY)||'[]');
-if(items.length){let rec=0;items.forEach(it=>{const arr=it.s==='recepcion'?pendingMediaRec:pendingMedia;if(arr.some(x=>x._data&&x._data===it.d))return;arr.push({pending:true,type:it.type||'image/jpeg',name:it.name||'',_data:it.d,_mime:it.mime,local:(String(it.type||'').indexOf('image')===0?('data:image/jpeg;base64,'+it.d):'')});rec++;});if(rec)toast('🔄 Recuperando '+rec+' evidencia(s) pendiente(s)...');}
+if(items.length){let rec=0;items.forEach(it=>{const arr=it.s==='recepcion'?pendingMediaRec:(it.s==='prueba'?pendingMediaPrueba:pendingMedia);if(arr.some(x=>x._data&&x._data===it.d))return;arr.push({pending:true,type:it.type||'image/jpeg',name:it.name||'',_data:it.d,_mime:it.mime,local:(String(it.type||'').indexOf('image')===0?('data:image/jpeg;base64,'+it.d):'')});rec++;});if(rec)toast('🔄 Recuperando '+rec+' evidencia(s) pendiente(s)...');}
 localStorage.removeItem(MQ_KEY);
-renderThumbs();renderRecThumbs();
+renderThumbs();renderRecThumbs();renderPruebaThumbs();
 }catch(e){}
 }
 async function mqUploadOne(m){
@@ -1128,16 +1131,19 @@ d.appendChild(img);
 }
 if(m.pending){const p=document.createElement('div');p.className='pend';p.textContent='⏳ SUBIENDO...';d.appendChild(p);}
 const x=document.createElement('button');x.className='x';x.textContent='✕';
-x.onclick=()=>{list.splice(i,1);renderThumbsGen(list,containerId);saveDraft();saveDraftRec();};
+x.onclick=()=>{list.splice(i,1);renderThumbsGen(list,containerId);saveDraft();saveDraftRec();try{saveDraftPrueba();}catch(e){}};
 d.appendChild(x);c.appendChild(d);
 });
 }
 function renderThumbs(){renderThumbsGen(pendingMedia,'mediaThumbs');}
 function renderRecThumbs(){renderThumbsGen(pendingMediaRec,'recThumbs');}
+function renderPruebaThumbs(){renderThumbsGen(pendingMediaPrueba,'pThumbs');}
 document.getElementById('f_foto').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';autoHoraInicio('nueva');addFiles(pendingMedia,'mediaThumbs',fl);});
 document.getElementById('f_video').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMedia,'mediaThumbs',fl);});
 document.getElementById('f_galeria').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMedia,'mediaThumbs',fl);});
 document.getElementById('r_foto').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';autoHoraInicio('recepcion');addFiles(pendingMediaRec,'recThumbs',fl);});
+document.getElementById('p_foto').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaPrueba,'pThumbs',fl);});
+document.getElementById('p_galeria').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaPrueba,'pThumbs',fl);});
 document.getElementById('r_video').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaRec,'recThumbs',fl);});
 document.getElementById('r_galeria').addEventListener('change',e=>{const fl=[...e.target.files];e.target.value='';addFiles(pendingMediaRec,'recThumbs',fl);});
 const sig=document.getElementById('sigPad');
@@ -1259,6 +1265,7 @@ const d=JSON.parse(raw);if(!d)return;
 if(d.fields){Object.keys(d.fields).forEach(id=>{const el=document.getElementById(id);if(el)el.value=d.fields[id];});
 if(d.fields.f_linea&&d.fields.f_linea!=='__MGR__')window._lastLinea=d.fields.f_linea;
 fillLineaOptions();onLineaChange();}
+document.getElementById('f_fecha').value=hoyLocal();
 document.getElementById('codigosList').innerHTML='';
 (d.pruebas||[]).forEach(p=>ensureChkValue(document.getElementById('f_pruebas'),p,true,'extra'));
 (d.insumos||[]).forEach(i=>addInsumoRow(i.m,i.p?Number(i.p):null));
@@ -1271,8 +1278,8 @@ if(d.media){pendingMedia=d.media;renderThumbs();}
 }
 function descartarBorrador(){if(saving)return;localStorage.removeItem(DRAFT_KEY);resetForm();toast('Formulario en blanco, listo para empezar 🗑');}
 let _dT1=null,_dT2=null;
-document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='f_foto'||t.id==='f_video'||t.id==='f_galeria'||t.id==='r_foto'||t.id==='r_video'||t.id==='r_galeria')return;if(t.closest('#tab-nueva')){autoHoraInicio('nueva');clearTimeout(_dT1);_dT1=setTimeout(saveDraft,700);}else if(t.closest('#tab-recepcion')){autoHoraInicio('recepcion');clearTimeout(_dT2);_dT2=setTimeout(saveDraftRec,700);}else if(t.closest('#tab-pruebas')){const el=document.getElementById('p_ini');if(el&&!el.value){el.value=nowHM();pDurUpdate();}}});
-document.addEventListener('change',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='f_foto'||t.id==='f_video'||t.id==='f_galeria'||t.id==='r_foto'||t.id==='r_video'||t.id==='r_galeria')return;if(t.closest('#tab-nueva')){autoHoraInicio('nueva');saveDraft();}else if(t.closest('#tab-recepcion')){autoHoraInicio('recepcion');saveDraftRec();}else if(t.closest('#tab-pruebas')){const el=document.getElementById('p_ini');if(el&&!el.value){el.value=nowHM();pDurUpdate();}saveDraftPrueba();}});
+document.addEventListener('input',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='f_foto'||t.id==='f_video'||t.id==='f_galeria'||t.id==='r_foto'||t.id==='r_video'||t.id==='r_galeria'||t.id==='p_foto'||t.id==='p_galeria')return;if(t.closest('#tab-nueva')){autoHoraInicio('nueva');clearTimeout(_dT1);_dT1=setTimeout(saveDraft,700);}else if(t.closest('#tab-recepcion')){autoHoraInicio('recepcion');clearTimeout(_dT2);_dT2=setTimeout(saveDraftRec,700);}else if(t.closest('#tab-pruebas')){const el=document.getElementById('p_ini');if(el&&!el.value){el.value=nowHM();pDurUpdate();}}});
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.closest)return;if(t.id==='f_foto'||t.id==='f_video'||t.id==='f_galeria'||t.id==='r_foto'||t.id==='r_video'||t.id==='r_galeria'||t.id==='p_foto'||t.id==='p_galeria')return;if(t.closest('#tab-nueva')){autoHoraInicio('nueva');saveDraft();}else if(t.closest('#tab-recepcion')){autoHoraInicio('recepcion');saveDraftRec();}else if(t.closest('#tab-pruebas')){const el=document.getElementById('p_ini');if(el&&!el.value){el.value=nowHM();pDurUpdate();}saveDraftPrueba();}});
 const DRAFT_REC_KEY='sole_draft_recepcion_v2',OBS_KEY='sole_obs_rec_v1';
 function getObs(){try{return JSON.parse(localStorage.getItem(OBS_KEY))||[];}catch{return[];}}
 function pintarObsChips(){
@@ -1385,6 +1392,7 @@ try{
 const raw=localStorage.getItem(DRAFT_REC_KEY);if(!raw)return;
 const d=JSON.parse(raw);if(!d)return;
 if(d.fields){Object.keys(d.fields).forEach(id=>{const el=document.getElementById(id);if(el)el.value=d.fields[id];});}
+document.getElementById('r_fecha').value=hoyLocal();
 document.getElementById('rItemsList').innerHTML='';
 (d.items||[]).forEach((i,ix)=>addRecItemRow(i.t,i.c,i.q?Number(i.q):null,i.e,i.m||[],ix===0,i.f||'',i.fo||'',i.in||'',i.fn||''));
 (d.pruebas||[]).forEach(p=>ensureChkValue(document.getElementById('r_pruebas'),p,true,'rextra'));
@@ -1396,6 +1404,15 @@ updateDictamenUI();
 }catch(e){}
 }
 function descartarBorradorRec(){if(savingRec)return;localStorage.removeItem(DRAFT_REC_KEY);resetRecForm();toast('Formulario en blanco, listo para empezar 🗑');}
+function vigiaFechas(){
+const hoy=hoyLocal();const puestos=[];
+['f_fecha','r_fecha','p_fecha'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(document.activeElement===el)return;const val=el.value||'';if(!val||val<hoy){el.value=hoy;puestos.push(id);}});
+if(puestos.length){try{saveDraft();}catch(e){}try{saveDraftRec();}catch(e){}try{saveDraftPrueba();}catch(e){}toast('📅 Había fechas atrasadas y las puse al día: hoy es '+hoy+' (hora de Perú).');}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)vigiaFechas();});
+window.addEventListener('focus',vigiaFechas);
+window.addEventListener('pageshow',vigiaFechas);
+
 function resetRecForm(){
 ['r_oc','r_guia','r_factura','r_proveedor','r_inspector','r_obs','r_hini','r_hfin'].forEach(id=>document.getElementById(id).value='');
 document.getElementById('r_fecha').value=hoyLocal();
@@ -1750,47 +1767,54 @@ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
 /* ===== PRUEBAS Y APOYO — trazabilidad de la jornada (v8.7) ===== */
 let allPruebas=[];const PRUEBAS_KEY='sole_pruebas_v1';
 function pruebaScopeDesde(){const s=document.getElementById('p_scope')?document.getElementById('p_scope').value:'mes';if(s==='todo')return'';if(s==='hoy')return hoyLocal();if(s==='7'){const d=limaParts(new Date(Date.now()-6*86400000));return d.year+'-'+d.month+'-'+d.day;}return hoyLocal().slice(0,8)+'01';}
-function pActChange(){const w=document.getElementById('p_actOtroW');if(w)w.style.display=document.getElementById('p_act').value==='__OTRO__'?'block':'none';}
+function pActChange(){const sel=document.getElementById('p_act');if(!sel)return;const w=document.getElementById('p_actOtroW');if(w)w.style.display=sel.value==='__OTRO__'?'block':'none';const isMano=sel.value.indexOf('manómetros')>=0;const tecW=document.getElementById('p_tecW'),codW=document.getElementById('p_codW');if(tecW)tecW.style.display=isMano?'block':'none';if(codW){codW.style.display=isMano?'none':'block';const c=document.getElementById('p_cod');if(c){if(isMano){c.value='';c.placeholder='No aplica a manómetros';}else{c.placeholder='Ej. SOLRAP001 (opcional)';}}}}
 function pStamp(id){const el=document.getElementById(id);if(el){el.value=nowHM();pDurUpdate();saveDraftPrueba();}}
 function pDurUpdate(){const el=document.getElementById('p_dur');if(!el)return;const m=recDurMin(v('p_ini'),v('p_fin'));if(v('p_ini')&&v('p_fin'))el.textContent=m>0?('⏱ Duración: '+m+' min ('+v('p_ini')+' → '+v('p_fin')+')'):'⚠️ La hora fin es menor que la inicio';else if(v('p_ini'))el.textContent='⏱ Inició '+v('p_ini')+' — en curso';else el.textContent='⏱ Duración: —';}
-function saveDraftPrueba(){try{localStorage.setItem('sole_prueba_draft_v1',JSON.stringify({fecha:v('p_fecha'),act:v('p_act'),otro:v('p_actOtro'),cod:v('p_cod'),cant:v('p_cant'),nota:v('p_nota'),ini:v('p_ini'),fin:v('p_fin')}));}catch(e){}}
-function restoreDraftPrueba(){try{const d=JSON.parse(localStorage.getItem('sole_prueba_draft_v1')||'null');if(!d)return;if(d.fecha)document.getElementById('p_fecha').value=d.fecha;if(d.act){document.getElementById('p_act').value=d.act;pActChange();}if(d.otro)document.getElementById('p_actOtro').value=d.otro;if(d.cod)document.getElementById('p_cod').value=d.cod;if(d.cant)document.getElementById('p_cant').value=d.cant;if(d.nota)document.getElementById('p_nota').value=d.nota;if(d.ini)document.getElementById('p_ini').value=d.ini;if(d.fin)document.getElementById('p_fin').value=d.fin;pDurUpdate();}catch(e){}}
+function saveDraftPrueba(){try{localStorage.setItem('sole_prueba_draft_v1',JSON.stringify({fecha:v('p_fecha'),act:v('p_act'),otro:v('p_actOtro'),cod:v('p_cod'),cant:v('p_cant'),tec:v('p_tec'),nota:v('p_nota'),ini:v('p_ini'),fin:v('p_fin')}));}catch(e){}}
+function restoreDraftPrueba(){try{const d=JSON.parse(localStorage.getItem('sole_prueba_draft_v1')||'null');if(!d)return;document.getElementById('p_fecha').value=hoyLocal();if(d.act){document.getElementById('p_act').value=d.act;pActChange();}if(d.otro)document.getElementById('p_actOtro').value=d.otro;if(d.cod)document.getElementById('p_cod').value=d.cod;if(d.cant)document.getElementById('p_cant').value=d.cant;if(d.tec)document.getElementById('p_tec').value=d.tec;if(d.nota)document.getElementById('p_nota').value=d.nota;if(d.ini)document.getElementById('p_ini').value=d.ini;if(d.fin)document.getElementById('p_fin').value=d.fin;pDurUpdate();}catch(e){}}
 async function guardarPrueba(){
 const actSel=v('p_act');const act=actSel==='__OTRO__'?v('p_actOtro').trim():actSel;
+const isMano=String(act).toLowerCase().indexOf('manómetro')>=0;
+const tec=v('p_tec').trim();
 if(!v('p_fecha'))document.getElementById('p_fecha').value=hoyLocal();
 if(!act){toast('Indica la actividad (o escríbela en "Otra").');return;}
+if(isMano&&!tec){toast('👨‍🔧 Indica el nombre del técnico dueño del manómetro.');return;}
 if(!v('p_ini')){toast('Marca ▶ la hora de inicio (o escríbela).');return;}
 if(!v('p_fin')){toast('Marca ■ la hora de fin al terminar la actividad.');return;}
 const m=recDurMin(v('p_ini'),v('p_fin'));if(m<=0){toast('⚠️ Revisa las horas: la fin debe ser mayor que la inicio.');return;}
-const rec={id:'P'+Date.now()+Math.floor(Math.random()*90+10),fecha:v('p_fecha'),horaIni:v('p_ini'),horaFin:v('p_fin'),durMin:m,actividad:act,codigo:v('p_cod').trim(),cantidad:Number(v('p_cant'))||0,nota:v('p_nota').trim(),por:(segNombre&&segNombre())||'—',pendiente:1};
+if(mqPending().length)toast('📤 Subiendo evidencias...');
+await flushMedia([pendingMediaPrueba]);
+const rec={id:'P'+Date.now()+Math.floor(Math.random()*90+10),fecha:v('p_fecha'),horaIni:v('p_ini'),horaFin:v('p_fin'),durMin:m,actividad:act,codigo:isMano?'':v('p_cod').trim(),tecnico:isMano?tec:'',cantidad:Number(v('p_cant'))||0,nota:v('p_nota').trim(),por:(segNombre&&segNombre())||'—',media:pendingMediaPrueba.filter(x=>!x.pending).map(cleanMedia),pendiente:1};
 allPruebas.unshift(rec);savePruebasCache();renderPruebas();
-try{const r=await apiPost('pruebasSave',{data:{fecha:rec.fecha,actividad:rec.actividad,codigo:rec.codigo,cantidad:rec.cantidad,nota:rec.nota,horaIni:rec.horaIni,horaFin:rec.horaFin,durMin:rec.durMin,por:rec.por}});rec.pendiente=0;if(r&&r.id)rec.id=r.id;savePruebasCache();renderPruebas();toast('Actividad guardada ✓ · '+rec.durMin+' min');}
+const quedanP=pendingMediaPrueba.filter(x=>x.pending&&x._data);if(quedanP.length){_orphanP.push.apply(_orphanP,quedanP);toast('📤 '+quedanP.length+' evidencia(s) se terminarán de subir a Drive ahora (la actividad guardada no se afecta)');}
+pendingMediaPrueba.length=0;renderPruebaThumbs();
+try{const r=await apiPost('pruebasSave',{data:{fecha:rec.fecha,actividad:rec.actividad,codigo:rec.codigo,tecnico:rec.tecnico,cantidad:rec.cantidad,nota:rec.nota,horaIni:rec.horaIni,horaFin:rec.horaFin,durMin:rec.durMin,por:rec.por,media:rec.media}});rec.pendiente=0;if(r&&r.id)rec.id=r.id;savePruebasCache();renderPruebas();toast('Actividad guardada ✓ · '+rec.durMin+' min'+(rec.media.length?' · 📷 '+rec.media.length:''));}
 catch(e){toast('Sin conexión: quedó en este equipo y se subirá sola al reconectar.');}
 try{localStorage.removeItem('sole_prueba_draft_v1');}catch(e){}
 resetPruebaForm();
 }
-function resetPruebaForm(){['p_cod','p_cant','p_nota','p_ini','p_fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});pDurUpdate();saveDraftPrueba();}
+function resetPruebaForm(){['p_cod','p_cant','p_tec','p_nota','p_ini','p_fin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});pDurUpdate();saveDraftPrueba();}
 function savePruebasCache(){try{localStorage.setItem(PRUEBAS_KEY,JSON.stringify(allPruebas.filter(p=>p.pendiente)));}catch(e){}}
 function pruebasMergeServ(serv){const pend=(allPruebas||[]).filter(p=>p.pendiente);allPruebas=(serv||[]).concat(pend);savePruebasCache();renderPruebas();}
 async function pruebasPush(){const pend=(allPruebas||[]).filter(p=>p.pendiente);if(!pend.length)return;
-for(const p of pend){try{const r=await apiPost('pruebasSave',{data:{fecha:p.fecha,actividad:p.actividad,codigo:p.codigo,cantidad:p.cantidad,nota:p.nota,horaIni:p.horaIni,horaFin:p.horaFin,durMin:p.durMin,por:p.por}});p.pendiente=0;if(r&&r.id)p.id=r.id;}catch(e){break;}}
+for(const p of pend){try{const r=await apiPost('pruebasSave',{data:{fecha:p.fecha,actividad:p.actividad,codigo:p.codigo,tecnico:p.tecnico||'',cantidad:p.cantidad,nota:p.nota,horaIni:p.horaIni,horaFin:p.horaFin,durMin:p.durMin,por:p.por,media:p.media||[]}});p.pendiente=0;if(r&&r.id)p.id=r.id;}catch(e){break;}}
 savePruebasCache();renderPruebas();}
 function renderPruebas(){const tb=document.getElementById('pruebasBody');if(!tb)return;
 const desde=pruebaScopeDesde();const hasta=hoyLocal();
 const q=(document.getElementById('p_busca')?v('p_busca'):'').trim().toLowerCase();
-const rows=allPruebas.filter(p=>{if(desde&&(p.fecha||'')<desde)return false;if((p.fecha||'')>hasta)return false;if(q){const b=[p.actividad,p.codigo,p.nota,p.por].join(' ').toLowerCase();if(!b.includes(q))return false;}return true;});
+const rows=allPruebas.filter(p=>{if(desde&&(p.fecha||'')<desde)return false;if((p.fecha||'')>hasta)return false;if(q){const b=[p.actividad,p.codigo,p.tecnico,p.nota,p.por].join(' ').toLowerCase();if(!b.includes(q))return false;}return true;});
 rows.sort((a,b)=>((b.fecha||'')+(b.horaIni||'')).localeCompare((a.fecha||'')+(a.horaIni||'')));
-let h='';rows.forEach(p=>{h+='<tr><td>'+esc(p.fecha)+'</td><td>'+esc(p.horaIni||'—')+' → '+esc(p.horaFin||'—')+'</td><td><b>'+(p.durMin||0)+' min</b></td><td>'+esc(p.actividad)+(p.nota?'<br><span class="hint" style="margin:0;">'+esc(p.nota)+'</span>':'')+'</td><td>'+esc(p.codigo||'—')+'</td><td>'+(p.cantidad||'—')+'</td><td>'+esc(p.por||'—')+(p.pendiente?' 💾':'')+'</td><td><button class="delbtn" onclick="delPrueba(\''+p.id+'\')">🗑</button></td></tr>';});
+let h='';rows.forEach(p=>{h+='<tr><td>'+esc(p.fecha)+'</td><td>'+esc(p.horaIni||'—')+' → '+esc(p.horaFin||'—')+'</td><td><b>'+(p.durMin||0)+' min</b></td><td>'+esc(p.actividad)+(p.tecnico?'<br><span class="hint" style="margin:0;">👨‍🔧 '+esc(p.tecnico)+'</span>':'')+(p.nota?'<br><span class="hint" style="margin:0;">'+esc(p.nota)+'</span>':'')+(p.media&&p.media.length?' <b style="color:var(--ok);">📷'+p.media.length+'</b>':'')+'</td><td>'+esc(p.codigo||'—')+'</td><td>'+(p.cantidad||'—')+'</td><td>'+esc(p.por||'—')+(p.pendiente?' 💾':'')+'</td><td><button class="delbtn" onclick="delPrueba(\''+p.id+'\')">🗑</button></td></tr>';});
 tb.innerHTML=h;document.getElementById('pruebasEmpty').style.display=rows.length?'none':'block';
 renderPruebaKpi(desde);}
 function renderPruebaKpi(desde){const el=document.getElementById('p_kpi');if(!el)return;const hasta=hoyLocal();
 const inR=allPruebas.filter(p=>(!desde||(p.fecha||'')>=desde)&&(p.fecha||'')<=hasta);
-const n=inR.length;const min=inR.reduce((a,p)=>a+(p.durMin||0),0);
+const n=inR.length;const min=inR.reduce((a,p)=>a+(p.durMin||0),0);const nF=inR.reduce((a,p)=>a+((p.media&&p.media.length)||0),0);
 const docsR=allDocs.filter(d=>(!desde||d.fecha>=desde)&&(d.fecha||'')<=hasta);
 const recsR=allRecs.filter(r=>(!desde||r.fecha>=desde)&&(r.fecha||'')<=hasta);
 const minI=docsR.reduce((a,d)=>a+(d.horasHombre||0)*60,0)+recsR.reduce((a,r)=>a+(r.tiempoHoras||0)*60,0);
 const porP={};inR.forEach(p=>{const k=p.por||'—';if(!porP[k])porP[k]={n:0,m:0};porP[k].n++;porP[k].m+=p.durMin||0;});
-let h='<div class="stats"><div class="stat"><b>'+n+'</b><span>Actividades de apoyo</span></div><div class="stat"><b>'+fmtDur(min/60)+'</b><span>Tiempo en actividades</span></div><div class="stat"><b>'+fmtDur(minI/60)+'</b><span>Inspecciones + recepciones</span></div><div class="stat"><b>'+fmtDur((min+minI)/60)+'</b><span>Total registrado</span></div></div>';
+let h='<div class="stats"><div class="stat"><b>'+n+'</b><span>Actividades registradas</span></div><div class="stat"><b>'+nF+'</b><span>Fotos de evidencia</span></div><div class="stat"><b>'+fmtDur(min/60)+'</b><span>Tiempo en actividades</span></div><div class="stat"><b>'+fmtDur(minI/60)+'</b><span>Inspecciones + recepciones</span></div><div class="stat"><b>'+fmtDur((min+minI)/60)+'</b><span>Total registrado</span></div></div>';
 const keys=Object.keys(porP);if(keys.length)h+='<div class="hint" style="margin-top:6px;">Por persona: '+keys.map(k=>esc(k)+' · '+porP[k].n+' act. ('+fmtDur(porP[k].m/60)+')').join(' — ')+'</div>';
 el.innerHTML=h;}
 async function delPrueba(id){if(!confirm('¿Eliminar esta actividad?'))return;const c=(prompt('🔒 Clave de administrador para ELIMINAR:')||'').trim();if(!c)return;
@@ -1860,16 +1884,43 @@ h+='<span style="font-size:8.5px;color:'+REP.muted+';letter-spacing:.8px;">sole 
 h+='</div>';
 h+='<p style="font-size:8.5px;color:#98A3AE;text-align:center;margin:5px 0 0;letter-spacing:.6px;">Documento controlado · Generado el '+fechaHoraLima()+' (hora Peru)</p></div>';
 return h;}
-function obsTexto(edits,id,def){if(edits&&edits.obs&&Object.prototype.hasOwnProperty.call(edits.obs,String(id)))return String(edits.obs[String(id)]||'').trim();return String(def||'').trim();}
+function mejorarTextoIA(s){
+let t=String(s||'').replace(/\s+/g,' ').trim();
+if(!t)return'';
+/* 1) puntuación primero: 'lote,q' → 'lote, q' (así la q pegada a la coma también se traduce) */
+t=t.replace(/([,;:])(?=[^\s\d)\]])/g,'$1 ').replace(/ +([,;.:])/g,'$1');
+/* 2) abreviaturas del taller — solo minúsculas, para no tocar códigos (COD-X, QC-...) */
+for(let pass=0;pass<2;pass++){
+t=t.replace(/(\s|^)xq(\s|$)/g,'$1porque$2').replace(/(\s|^)pq(\s|$)/g,'$1porque$2').replace(/(\s|^)q(\s|$)/g,'$1que$2')
+.replace(/(\s|^)tb(\s|$)/g,'$1también$2').replace(/(\s|^)tbn(\s|$)/g,'$1también$2')
+.replace(/(\s|^)c\/u(\s|$)/g,'$1cada uno$2').replace(/(\s|^)aprox\.?(\s|$)/g,'$1aproximadamente$2')
+.replace(/(\s)x(\s)/g,'$1por$2');
+}
+/* 3) ortografía frecuente de calidad — diccionario corto, no inventa nada */
+const DICC=[['inspecion','inspección'],['inspeciones','inspecciones'],['no conform','no conforme'],['descocido','descosido'],['rebarbas','rebabas'],['rebarba','rebaba'],['averias','averías'],['averia','avería'],['dias','días'],['dia','día'],['mas','más'],['cesped','césped'],['manometros','manómetros'],['manometro','manómetro'],['termometros','termómetros'],['termometro','termómetro'],['pirometros','pirómetros'],['pirometro','pirómetro'],['hidrostaticas','hidrostáticas'],['hidrostatica','hidrostática']];
+DICC.forEach(par=>{t=t.replace(new RegExp('\\b'+par[0]+'\\b','gi'),function(m){const up=m.charAt(0)!==m.charAt(0).toLowerCase();return up?par[1].charAt(0).toUpperCase()+par[1].slice(1):par[1];});});
+/* 4) terminaciones -ción/-sión genéricas */
+t=t.replace(/\b([a-záéíóúñ]+)cion\b/gi,'$1ción').replace(/\b([a-záéíóúñ]+)sion\b/gi,'$1sión');
+/* 5) puntuación doble y mayúsculas */
+t=t.replace(/([.!?:,;])\1+/g,'$1');
+t=t.replace(/(^|[.!?…]\s+)([a-záéíóúñü])/g,function(m,p,c){return p+c.toUpperCase();});
+if(t)t=t.charAt(0).toUpperCase()+t.slice(1);
+if(!/[.!?…]$/.test(t))t+='.';
+return t;
+}
+function iaEd(i){const el=document.getElementById('ed_obs_'+i);if(el)el.value=mejorarTextoIA(el.value);}
+function obsTexto(edits,id,def){const t=(edits&&edits.obs&&Object.prototype.hasOwnProperty.call(edits.obs,String(id)))?String(edits.obs[String(id)]||'').trim():String(def||'').trim();return mejorarTextoIA(t);}
 function normTecnica(s){s=String(s||'').replace(/\s+/g,' ').trim();if(!s)return'';s=s.charAt(0).toUpperCase()+s.slice(1);if(!/[.!?…]$/.test(s))s+='.';return s;}
-function abrirEditorInforme(docs,recs,soloRech,tpl){
+function abrirEditorInforme(docs,recs,soloRech,tpl,pruebas){
 let h='<h4>✍️ Revisar y editar el informe</h4>';
-h+='<p style="font-size:12px;color:var(--muted);line-height:1.6;">Corrige aquí lo que el personal haya escrito mal y agrega fotos si faltó evidencia: el PDF sale corregido, listo para enviar al proveedor.</p>';
+h+='<p style="font-size:12px;color:var(--muted);line-height:1.6;">Corrige aquí lo que el personal haya escrito mal y agrega fotos si faltó evidencia: el PDF sale corregido, listo para enviar al proveedor. Con <b>✨ IA</b> la redacción del personal se mejora sola (ortografía y lenguaje técnico) sin cambiar lo que reportó.</p>';
 const obsList=[];
 arrOf(docs).forEach(d=>{const o=String((d&&d.observaciones)||'').trim();if(o)obsList.push({id:String(d.id),label:'📝 Inspección '+(d.fecha||'')+' · '+(d.codigo||d.linea||''),val:o});});
 arrOf(recs).forEach(r=>{const o=String((r&&r.observaciones)||'').trim();if(o)obsList.push({id:String(r.id),label:'📝 Recepción '+(r.fecha||'')+' · '+(r.proveedor||''),val:o});});
+arrOf(pruebas).forEach(p=>{const o=String((p&&p.nota)||'').trim();if(o)obsList.push({id:String(p.id),label:'🧪 '+(p&&p.actividad||'Actividad')+' · '+(p&&p.fecha||''),val:o});});
 if(obsList.length){h+='<p style="font-size:12px;font-weight:700;margin:10px 0 4px;">Observaciones del personal (editables):</p>';
-obsList.forEach((o,i)=>{h+='<div style="font-size:11.5px;color:var(--muted);margin-top:6px;">'+esc(o.label)+'</div><textarea id="ed_obs_'+i+'" style="width:100%;min-height:64px;font-size:12.5px;">'+esc(o.val)+'</textarea>';});}
+h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;margin:6px 0 2px;"><input type="checkbox" id="ed_ia" checked> ✨ Mejorar la redacción con IA al generar (no inventa contenido)</label>';
+obsList.forEach((o,i)=>{h+='<div style="font-size:11.5px;color:var(--muted);margin-top:6px;">'+esc(o.label)+'</div><textarea id="ed_obs_'+i+'" style="width:100%;min-height:64px;font-size:12.5px;">'+esc(o.val)+'</textarea><button type="button" class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="iaEd('+i+')">✨ Mejorar redacción (IA)</button>';});}
 else{h+='<div class="hint" style="margin-top:6px;">El personal no escribió observaciones en estos registros.</div>';}
 h+='<p style="font-size:12px;font-weight:700;margin:12px 0 4px;">📷 Fotos adicionales para el informe (opcional)</p>';
 h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><button type="button" class="btn btn-accent" style="padding:8px 12px;font-size:12.5px;" onclick="document.getElementById(\'ed_fotos\').click()">📷 Agregar fotos al PDF</button><span class="hint" style="margin:0;" id="ed_fotosInfo">0 agregada(s)</span></div>';
@@ -1880,7 +1931,7 @@ h+='<button class="btn btn-accent" style="width:100%;margin-top:4px;" onclick="g
 h+='<button class="btn btn-ghost" style="width:100%;margin-top:6px;" onclick="closeModal()">Cancelar</button>';
 openModal(h);
 window._edFotos=[];
-window._edPend={docs:docs,recs:recs,soloRech:soloRech,tpl:tpl||null,obsIds:obsList.map(o=>o.id)};
+window._edPend={docs:docs,recs:recs,soloRech:soloRech,tpl:tpl||null,pruebas:pruebas||[],obsIds:obsList.map(o=>o.id),orig:obsList.map(o=>o.val)};
 const ef=document.getElementById('ed_fotos');
 if(ef)ef.onchange=async e=>{const files=[...e.target.files];e.target.value='';
 for(const f of files){try{const src=await edCompressFoto(f);window._edFotos.push(src);}catch(x){}}
@@ -1890,13 +1941,16 @@ const info=document.getElementById('ed_fotosInfo');if(info)info.textContent=wind
 function edCompressFoto(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{const mx=1400;let w=img.width||mx,ht=img.height||mx;if(w>mx){ht=Math.round(ht*mx/w);w=mx;}const c=document.createElement('canvas');c.width=w;c.height=ht;c.getContext('2d').drawImage(img,0,0,w,ht);res(c.toDataURL('image/jpeg',0.82));};img.src=fr.result;};fr.readAsDataURL(file);});}
 function generarDesdeEditor(){
 const p=window._edPend||{};const edits={obs:{},fotos:(window._edFotos||[]).slice()};
-(p.obsIds||[]).forEach((id,i)=>{const el=document.getElementById('ed_obs_'+i);if(el)edits.obs[id]=el.value;});
+const useIA=!document.getElementById('ed_ia')||document.getElementById('ed_ia').checked;
+(p.obsIds||[]).forEach((id,i)=>{const el=document.getElementById('ed_obs_'+i);if(!el)return;let t=el.value;const orig=(p.orig||[])[i];
+if(orig!==undefined&&t===orig)t=useIA?mejorarTextoIA(t):t;
+edits.obs[id]=t;});
 closeModal();
-imprimirInformeFinal(p.docs||[],p.recs||[],p.soloRech,p.tpl,edits);
+imprimirInformeFinal(p.docs||[],p.recs||[],p.soloRech,p.tpl,edits,p.pruebas||[]);
 }
-function imprimirInforme(docs,recs,soloRech,tpl){
-try{abrirEditorInforme(arrOf(docs).map(normRepDoc),arrOf(recs).map(normRepRec),soloRech,tpl);}
-catch(e){imprimirInformeFinal(docs,recs,soloRech,tpl,null);}
+function imprimirInforme(docs,recs,soloRech,tpl,pruebas){
+try{abrirEditorInforme(arrOf(docs).map(normRepDoc),arrOf(recs).map(normRepRec),soloRech,tpl,pruebas);}
+catch(e){imprimirInformeFinal(docs,recs,soloRech,tpl,null,pruebas);}
 }
 function buildInformeHTML(docs,recs,soloRechazados,edits){
 const hoy=hoyLocal();
@@ -1940,8 +1994,8 @@ conDef.forEach(d=>{
 h+='<div class="brd" style="border:1px solid '+REP.line+';margin-bottom:6px;">';
 h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sub+++' '+esc(d.fecha)+' · '+esc(d.codigo)+' · '+esc(d.linea)+'</div>';
 h+='<div style="padding:8px 10px;">';
-(d.defectos||[]).forEach(x=>{const col=x.tipo==='Funcional'?REP.bad:REP.warn;h+='<div style="margin-top:3px;"><b style="color:'+col+';">['+esc(x.tipo)+']</b> '+esc(x.descripcion)+(x.codigo?' (código '+esc(x.codigo)+')':'')+'</div>';});
-if(d.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(d.observaciones)+'</div>';
+(d.defectos||[]).forEach(x=>{const col=x.tipo==='Funcional'?REP.bad:REP.warn;h+='<div style="margin-top:3px;"><b style="color:'+col+';">['+esc(x.tipo)+']</b> '+esc(mejorarTextoIA(x.descripcion))+(x.codigo?' (código '+esc(x.codigo)+')':'')+'</div>';});
+if(d.observaciones)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+REP.navy+';padding:5px 8px;">📝 '+esc(obsTexto(edits,d.id,d.observaciones))+'</div>';
 let fotos=[];(d.defectos||[]).forEach(x=>{repPushFotos(x.media,fotos,seenF);});repFotosDoc(d,fotos,seenF);
 h+=repEvid(fotos,'Evidencia — '+d.codigo+' ('+d.fecha+')');
 h+='</div></div>';});
@@ -1963,17 +2017,17 @@ h+=repSec(S(sec++),'Recepciones nacionales');
 h+='<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;"><colgroup><col style="width:5%"><col style="width:9%"><col style="width:24%"><col style="width:12%"><col style="width:12%"><col style="width:27%"><col style="width:11%"></colgroup>';
 h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">PROVEEDOR</th><th style="padding:5px;border:1px solid '+REP.line+';">OC</th><th style="padding:5px;border:1px solid '+REP.line+';">GUÍA</th><th style="padding:5px;border:1px solid '+REP.line+';">ÍTEMS / FALLAS</th><th style="padding:5px;border:1px solid '+REP.line+';">DICTAMEN</th></tr></thead>';
 recs.forEach((r,ix)=>{const dic=r.dictamen;const col=(dic==='RECHAZADO'||dic==='OBSERVADO')?REP.bad:(dic==='TOLERADO')?REP.warn:REP.ok;
-h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.oc||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.guia||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+(i.falla?' — '+esc(i.falla):'')+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(dic),col,(dic==='RECHAZADO'||dic==='OBSERVADO')?'#fdecec':(dic==='TOLERADO')?'#fff4e3':'#e9f6ee')+'</td></tr>';});
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.proveedor)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.oc||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(r.guia||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+((r.items||[]).map(i=>esc(i.codigo)+(i.falla?' — '+esc(mejorarTextoIA(i.falla)):'')+' ('+esc(i.estado)+')').join('; ')||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(dic),col,(dic==='RECHAZADO'||dic==='OBSERVADO')?'#fdecec':(dic==='TOLERADO')?'#fff4e3':'#e9f6ee')+'</td></tr>';});
 h+='</table>';
 const recProb=recs.filter(r=>(r.items||[]).some(i=>i&&((i.estado&&i.estado!=='Conforme')||i.falla)));
 const fallasSel=[];recProb.forEach(r=>(r.items||[]).forEach(i=>{if(i&&i.falla&&!fallasSel.includes(i.falla))fallasSel.push(i.falla);}));
-if(fallasSel.length){h+='<div class="brd" style="border:1px solid '+REP.line+';margin:6px 0;">';h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">Fallas seleccionadas / agregadas en recepción ('+fallasSel.length+')</div>';h+='<div style="padding:7px 10px;">'+fallasSel.map((f,fi)=>'<div style="margin-top:2px;"><b style="color:'+REP.navy+';">'+S(fi+1)+'.</b> '+esc(f)+'</div>').join('')+'</div></div>';}
+if(fallasSel.length){h+='<div class="brd" style="border:1px solid '+REP.line+';margin:6px 0;">';h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">Fallas seleccionadas / agregadas en recepción ('+fallasSel.length+')</div>';h+='<div style="padding:7px 10px;">'+fallasSel.map((f,fi)=>'<div style="margin-top:2px;"><b style="color:'+REP.navy+';">'+S(fi+1)+'.</b> '+esc(mejorarTextoIA(f))+'</div>').join('')+'</div></div>';}
 let sb=1;const seenR={};
 recs.forEach(r=>{const esC=!recProb.includes(r);const obs=obsTexto(edits,r.id,r.observaciones);
 h+='<div class="brd" style="border:1px solid '+REP.line+';margin:6px 0;">';
 h+='<div style="background:'+(esC?REP.ok:REP.navy)+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+sb+++' '+esc(r.fecha)+' · '+esc(r.proveedor)+(esC?' · RECEPCIÓN CONFORME':'')+'</div><div style="padding:8px 10px;">';
 const its=(r.items||[]).filter(i=>i&&((i.estado&&i.estado!=='Conforme')||i.falla));
-if(its.length){h+=its.map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(i.falla):'')+(i.durMin?' · <b>⏱ '+esc(i.durMin)+' min</b>':'')+'</div>';}).join('');}
+if(its.length){h+=its.map(i=>{const col=(i.estado==='Rechazado'||i.estado==='Observado')?REP.bad:REP.warn;return'<div style="margin-top:3px;"><b style="color:'+col+';">'+esc(i.estado)+'</b> — '+esc(i.codigo)+(i.cantidad?' ('+i.cantidad+' pzas)':'')+(i.falla?' · '+esc(mejorarTextoIA(i.falla)):'')+(i.durMin?' · <b>⏱ '+esc(i.durMin)+' min</b>':'')+'</div>';}).join('');}
 else{h+='<div style="margin:2px 0 4px;color:'+REP.ok+';font-weight:700;">Recepción conforme — ítem(s) evaluado(s): '+((r.items||[]).length||0)+((r.items||[]).length?' ('+esc((r.items||[]).map(i=>String(i.codigo||'')).filter(Boolean).join(', '))+')':'')+' — sin condiciones observadas.</div>';}
 if(obs)h+='<div style="margin-top:5px;background:'+REP.zebra+';border-left:3px solid '+(esC?REP.ok:REP.navy)+';padding:5px 8px;">📝 '+esc(obs)+'</div>';
 let rf=[];(r.items||[]).forEach(i=>{if(i&&i.media)repPushFotos(i.media,rf,seenR);});repPushFotos(r.media,rf,seenR);
@@ -2044,7 +2098,7 @@ h+=repSec(S(sec++),'Resultados de la inspección');
 h+='<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;"><colgroup><col style="width:5%"><col style="width:10%"><col style="width:20%"><col style="width:13%"><col style="width:8%"><col style="width:33%"><col style="width:11%"></colgroup>';
 h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">INSUMO / PRODUCTO</th><th style="padding:5px;border:1px solid '+REP.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+REP.line+';">CANT.</th><th style="padding:5px;border:1px solid '+REP.line+';">FALLA / CONDICIÓN</th><th style="padding:5px;border:1px solid '+REP.line+';">RESULTADO</th></tr></thead>';
 problemas.forEach((p,ix)=>{const col=p.i.estado==='Rechazado'?REP.bad:REP.warn;
-h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.falla||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(String(p.i.estado).toUpperCase()),col,p.i.estado==='Rechazado'?'#fdecec':'#fff4e3')+'</td></tr>';});
+h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.r.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.tipo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.i.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.i.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(mejorarTextoIA(p.i.falla)||'—')+'</td><td style="padding:4px;border:1px solid '+REP.line+';text-align:center;">'+repPill(esc(String(p.i.estado).toUpperCase()),col,p.i.estado==='Rechazado'?'#fdecec':'#fff4e3')+'</td></tr>';});
 h+='</table>';
 h+='<p style="font-size:10.5px;color:'+REP.muted+';margin:6px 0 0;">Resumen: '+totItems+' ítem(s) evaluado(s) — '+problemas.length+' con observación ('+(totItems?Math.round(problemas.length/totItems*100):0)+'%), conformidad de ítems: '+(totItems?Math.round((totItems-problemas.length)/totItems*100):100)+'%.</p>';
 h+=repSec(S(sec++),'Descripción de las condiciones encontradas');
@@ -2073,6 +2127,63 @@ h+=repSig(revisa||'Control de Calidad');
 h+='</body></html>';
 return h;
 }
+function normRepPrueba(p){const o=Object.assign({},p||{});['id','fecha','horaIni','horaFin','actividad','codigo','tecnico','por','nota'].forEach(k=>o[k]=repStr(o[k]));o.durMin=Number(o.durMin)||0;o.cantidad=Number(o.cantidad)||0;o.media=repMedia(o.media);return o;}
+function informePruebas(){
+const desde=pruebaScopeDesde();const hasta=hoyLocal();
+const q=(document.getElementById('p_busca')?v('p_busca'):'').trim().toLowerCase();
+const rows=allPruebas.filter(p=>{if(desde&&(p.fecha||'')<desde)return false;if((p.fecha||'')>hasta)return false;if(q){const b=[p.actividad,p.codigo,p.tecnico,p.nota,p.por].join(' ').toLowerCase();if(!b.includes(q))return false;}return true;});
+if(!rows.length){toast('No hay actividades de calidad en el período/filtro actual — nada para el informe.');return;}
+imprimirInforme([],[],false,'pruebas',rows);
+}
+function repEvidTodas(arr,title,max){let ms=repMedia(arr).filter(m=>!(m.type&&String(m.type).indexOf('video')===0&&!m.thumb));if(!ms.length)return'';
+let h='<div style="margin:8px 0 2px;"><div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+esc(title||'Evidencia fotográfica')+' ('+ms.length+')</div>';
+h+='<div class="brd" style="border:1px solid '+REP.cell+';border-top:none;padding:6px;">';
+const evl=ms.slice(0,max||24);
+for(let i=0;i<evl.length;i+=2){h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;page-break-inside:avoid;break-inside:avoid;">'+evl.slice(i,i+2).map(m=>'<a href="'+esc(m.url||m.thumb||'')+'"><img src="'+esc(repThumb(m))+'" style="width:100%;height:240px;object-fit:cover;border:1px solid '+REP.cell+';display:block;"></a>').join('')+'</div>';}
+return h+'</div></div>';}
+function buildInformePruebasHTML(pruebas,edits){
+const hoy=hoyLocal();
+const file='QCP-'+hoy.slice(2,4)+hoy.slice(5,7)+hoy.slice(8,10);
+const S=n=>('0'+n).slice(-2);let sec=1;
+const P=arrOf(pruebas);
+const fs=[...new Set(P.map(p=>p.fecha).filter(Boolean))].sort();
+const rango=fs.length?(fs.length>1?(fs[0]+' al '+fs[fs.length-1]):fs[0]):hoy;
+const totMin=P.reduce((a,p)=>a+(p.durMin||0),0);
+const totCant=P.reduce((a,p)=>a+(p.cantidad||0),0);
+const nFotos=P.reduce((a,p)=>a+((p.media||[]).length||0),0);
+const pers=[...new Set(P.map(p=>p.por).filter(Boolean))].join(', ');
+const acts=[...new Set(P.map(p=>p.actividad).filter(Boolean))];
+let h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de Actividades '+file+'</title><style>@page{size:A4;margin:0}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{font-family:\'Neue Haas Grotesk Text Pro\',\'Neue Haas Grotesk Display Pro\',Arial,Helvetica,sans-serif;color:'+REP.ink+';font-size:11.5px;line-height:1.45;margin:0;padding:9mm 9mm 10mm;box-decoration-break:clone;-webkit-box-decoration-break:clone;}tr{page-break-inside:avoid}thead{display:table-header-group}img{max-width:100%;page-break-inside:avoid}td,th{word-break:break-word}.brd{box-decoration-break:clone;-webkit-box-decoration-break:clone}</style></head><body>';
+h+=repHead('INFORME DE ACTIVIDADES DE CALIDAD','Pruebas específicas e inspecciones de calidad — apoyo en inspección en línea','Control de Calidad','FILE: <b>'+file+'</b> &nbsp;·&nbsp; FECHA: <b>'+esc(rango)+'</b>','ÁREA');
+h+=repSec(S(sec++),'Datos generales');
+h+='<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:17%"><col style="width:33%"><col style="width:17%"><col style="width:33%"></colgroup>';
+h+=repID2('FECHA',esc(rango),'ÁREA','Apoyo en Inspección en Línea de Calidad');
+h+=repID2('ACTIVIDADES',P.length+' registrada(s) — '+acts.length+' tipo(s)','TIEMPO TOTAL',fmtDur(totMin/60)+' ('+totMin+' min)');
+h+=repID2('PIEZAS / MUESTRAS',totCant?totCant.toLocaleString('es-PE'):'—','EVIDENCIA FOTOGRÁFICA',nFotos+' foto(s)');
+h+=repID2('REVISADO POR',esc(pers||'—'),'ELABORADO POR','Control de Calidad');
+h+=repID('TIPOS DE ACTIVIDAD',esc(acts.join(', ')||'—'));
+h+='</table>';
+h+=repSec(S(sec++),'Detalle de actividades');
+h+='<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;"><colgroup><col style="width:5%"><col style="width:10%"><col style="width:11%"><col style="width:8%"><col style="width:30%"><col style="width:12%"><col style="width:6%"><col style="width:11%"><col style="width:7%"></colgroup>';
+h+='<thead><tr style="background:'+REP.navy+';color:#fff;"><th style="padding:5px;border:1px solid '+REP.line+';">N.º</th><th style="padding:5px;border:1px solid '+REP.line+';">FECHA</th><th style="padding:5px;border:1px solid '+REP.line+';">HORARIO</th><th style="padding:5px;border:1px solid '+REP.line+';">DURAC.</th><th style="padding:5px;border:1px solid '+REP.line+';">ACTIVIDAD</th><th style="padding:5px;border:1px solid '+REP.line+';">CÓDIGO</th><th style="padding:5px;border:1px solid '+REP.line+';">CANT.</th><th style="padding:5px;border:1px solid '+REP.line+';">TÉCNICO</th><th style="padding:5px;border:1px solid '+REP.line+';">REGISTRÓ</th></tr></thead>';
+P.forEach((p,ix)=>{h+='<tr'+(ix%2?' style="background:'+REP.zebra+';"':'')+'><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+S(ix+1)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.fecha)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.horaIni||'—')+' – '+esc(p.horaFin||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+(p.durMin||0)+' min</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.actividad)+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.codigo||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';text-align:center;">'+esc(p.cantidad||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.tecnico||'—')+'</td><td style="padding:5px;border:1px solid '+REP.line+';">'+esc(p.por||'—')+'</td></tr>';});
+h+='</table>';
+h+='<p style="font-size:10.5px;color:'+REP.muted+';margin:6px 0 0;">Resumen: '+P.length+' actividad(es) con un tiempo total de '+fmtDur(totMin/60)+' — jornada de apoyo en inspección en línea registrada con evidencia fotográfica.</p>';
+const conNota=P.map(p=>({p:p,n:obsTexto(edits,p.id,p.nota)})).filter(x=>x.n);
+h+=repSec(S(sec++),'Observaciones del personal');
+if(conNota.length){let nb=1;
+conNota.forEach(x=>{h+='<div class="brd" style="border:1px solid '+REP.line+';margin-bottom:6px;">';
+h+='<div style="background:'+REP.navy+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.'+nb+++' '+esc(x.p.fecha)+' · '+esc(x.p.actividad)+(x.p.tecnico?' · Técnico: '+esc(x.p.tecnico):'')+'</div>';
+h+='<div style="padding:8px 10px;">📝 '+esc(x.n)+'</div></div>';});}
+else{h+='<p style="color:'+REP.muted+';">El personal no escribió observaciones en las actividades de este período.</p>';}
+let fotos=[],seen={};P.forEach(p=>repPushFotos(p.media,fotos,seen));
+if(fotos.length){h+=repSec(S(sec++),'Evidencia fotográfica');h+=repEvidTodas(fotos,'Evidencia — actividades de calidad',24);}
+const edF=arrOf(edits&&edits.fotos);
+if(edF.length){h+=repSec(S(sec++),'Evidencia adicional — adjuntada al informe');h+='<div class="brd" style="border:1px solid '+REP.line+';margin:6px 0;"><div style="background:'+REP.ok+';color:#fff;font-weight:700;font-size:11px;padding:5px 10px;break-after:avoid;">'+S(sec-1)+'.1 Fotos adicionales</div><div style="padding:8px 10px;">'+repEvid(edF.map(u=>({url:u})),'Evidencia adicional adjuntada')+'</div></div>';}
+h+=repSig(pers||'Control de Calidad');
+h+='</body></html>';
+return h;
+}
 function informeFormal(){
 const ids=selIdsProd();
 const docs=ids.length?allDocs.filter(d=>ids.includes(d.id)):filteredDocs();
@@ -2098,9 +2209,9 @@ recs=recs.filter(r=>r.dictamen!=='CONFORME');
 if(!recs.length){toast(ids.length?'Ninguno de los registros marcados es Tolerado/Rechazado.':'No hay tolerados ni rechazados en Nacionales con los filtros actuales. ✅');return;}
 imprimirInforme([],recs,true,'nacRech');
 }
-function imprimirInformeFinal(docs,recs,soloRech,tpl,edits){
+function imprimirInformeFinal(docs,recs,soloRech,tpl,edits,pruebas){
 let html='';
-try{docs=arrOf(docs).map(normRepDoc);recs=arrOf(recs).map(normRepRec);html=(tpl==='nacRech')?buildInformeRechNacHTML(recs,edits):buildInformeHTML(docs,recs,soloRech,edits);}
+try{docs=arrOf(docs).map(normRepDoc);recs=arrOf(recs).map(normRepRec);pruebas=arrOf(pruebas||[]).map(normRepPrueba);html=(tpl==='nacRech')?buildInformeRechNacHTML(recs,edits):(tpl==='pruebas')?buildInformePruebasHTML(pruebas,edits):buildInformeHTML(docs,recs,soloRech,edits);}
 catch(e){toast('❌ Error armando el informe: '+e.message);return;}
 if(!html||html.length<80){toast('❌ No se generó contenido del informe.');return;}
 toast('🖨 Preparando informe — elige "Guardar como PDF" en el diálogo...');
@@ -2343,7 +2454,7 @@ el.innerHTML=h;}
 function verHistorialApp(){
 let h='<h4>ℹ️ Historial de la app</h4>';
 h+='<p style="font-size:12px;color:var(--muted);line-height:1.6;">Cambios por versión. El expediente completo vive en el archivo <b>EXPEDIENTE_TRASPASO_GRUPOSOLE.txt</b>: guárdalo en tu Drive; en cada entrega pide la versión nueva de este historial.</p>';
-const HIST=[['v8.7','PDF más práctico: SIN la sección de Conclusión automática (lo que escribe el inspector sale UNA sola vez), todos los datos siempre visibles (OC, Guía, Factura, FILE) y el informe se puede editar y recibir FOTOS adicionales antes de imprimir. Cronómetro por código: cada insumo/código registra su ▶ inicio y ■ fin, con KPI «Tiempo por código». Nueva pestaña 🧪 Pruebas y apoyo: pirómetro, anemómetro, conversión de producto, revisión funcional de importados y manómetros de servicio técnico con código, cantidad y duración — nada del día queda sin registro. Todo en hora Perú.'],['v8.6','Informe PDF mejorado: la Conclusión se redacta sola con lenguaje técnico (incluye lo que escribe el inspector en Observaciones) y se puede EDITAR antes de imprimir. Las recepciones CONFORMES salen detalladas igual que las rechazadas. Cabecera con la OC (orden de compra) en nacionales; "PROVEEDOR" en vez de "ÁREA"; Vo.Bo. de Jefa de Calidad (Patricia Terzano) con espacio listo para su firma digital. Columna Duración en las tablas de Nacionales. Fecha y hora fijadas a hora de Perú (America/Lima) en todo el sistema, en el celular que sea.'],['v8.5.1','ANTI-PÉRDIDA del seguimiento: lo que graba la oficina ya NO se borra al actualizar. La app fusiona lo local con Sheets (nunca pisa), avisa con ☁️/💾 si está sincronizado y SUBE SOLA los casos que quedaron trabados en un equipo. Tablas vacías ahora explican que es el filtro HOY.'],['v8.5.0','Histórico de seguimiento: cada cambio de estado, respuesta del proveedor y nota queda con fecha y hora. Nueva tarjeta "🕐 Seguimiento a proveedores" (Hist. Nacionales) con días de respuesta/cierre y eficiencia por proveedor. Fotos que se reparan solas (permiso de Drive + respaldo por servidor). Fechas tolerantes: registros pegados a mano en Sheets (ej. 20/10/2026) ya aparecen en la app. Eliminar registro pide clave de administrador.'],['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
+const HIST=[['v8.8','Lo pedido a la jefa, hecho: (1) La fecha NUNCA más sale del día anterior — la app ya no hereda la fecha de los borradores guardados y un vigía pone "hoy (hora de Perú)" al reabrir o volver a la app; el servidor además respalda la fecha si faltara. (2) Pestaña renombrada a 🧪 Pruebas de calidad: pruebas específicas e inspecciones de calidad, ahora con FOTOS DE EVIDENCIA por actividad (se suman al KPI) y botón 📄 Emitir informe — PDF de la jornada con tabla de actividades, lo escrito por el técnico, evidencia y firmas, igual que los demás informes. (3) Manómetros: nuevo campo con el nombre del técnico dueño del manómetro y sin código de producto (no le aplica). (4) «Apoyo en línea de producción» pasó a «Apoyo en Inspección en Línea de Calidad». (5) En TODOS los informes: la redacción del personal se mejora sola con IA (ortografía y lenguaje técnico, sin inventar nada) y sin conclusión automática — solo lo que escribió el técnico.'],['v8.7','PDF más práctico: SIN la sección de Conclusión automática (lo que escribe el inspector sale UNA sola vez), todos los datos siempre visibles (OC, Guía, Factura, FILE) y el informe se puede editar y recibir FOTOS adicionales antes de imprimir. Cronómetro por código: cada insumo/código registra su ▶ inicio y ■ fin, con KPI «Tiempo por código». Nueva pestaña 🧪 Pruebas y apoyo: pirómetro, anemómetro, conversión de producto, revisión funcional de importados y manómetros de servicio técnico con código, cantidad y duración — nada del día queda sin registro. Todo en hora Perú.'],['v8.6','Informe PDF mejorado: la Conclusión se redacta sola con lenguaje técnico (incluye lo que escribe el inspector en Observaciones) y se puede EDITAR antes de imprimir. Las recepciones CONFORMES salen detalladas igual que las rechazadas. Cabecera con la OC (orden de compra) en nacionales; "PROVEEDOR" en vez de "ÁREA"; Vo.Bo. de Jefa de Calidad (Patricia Terzano) con espacio listo para su firma digital. Columna Duración en las tablas de Nacionales. Fecha y hora fijadas a hora de Perú (America/Lima) en todo el sistema, en el celular que sea.'],['v8.5.1','ANTI-PÉRDIDA del seguimiento: lo que graba la oficina ya NO se borra al actualizar. La app fusiona lo local con Sheets (nunca pisa), avisa con ☁️/💾 si está sincronizado y SUBE SOLA los casos que quedaron trabados en un equipo. Tablas vacías ahora explican que es el filtro HOY.'],['v8.5.0','Histórico de seguimiento: cada cambio de estado, respuesta del proveedor y nota queda con fecha y hora. Nueva tarjeta "🕐 Seguimiento a proveedores" (Hist. Nacionales) con días de respuesta/cierre y eficiencia por proveedor. Fotos que se reparan solas (permiso de Drive + respaldo por servidor). Fechas tolerantes: registros pegados a mano en Sheets (ej. 20/10/2026) ya aparecen en la app. Eliminar registro pide clave de administrador.'],['v8.4.1','Clave de oficina: solo Edgar, la jefa o el asistente pueden grabar el estado del proveedor (con confirmación "¿Desea grabar?"). Botón ℹ️ Historial con este resumen.'],['v8.4','Fotos: ya no se mezclan entre reportes ni se multiplican; las rezagadas suben a Drive en 2.º plano. Botones 🧹 Nuevo reporte y 🔄 Actualizar desde Sheets. Seguimiento de proveedor con 3 estados (Pendiente / En proceso / Cerrado). Pie limpio sin "sin login".'],['v8.3','Fechas locales: "hoy" ya no cambia a las 19:00 (hora Perú); los registros del día siempre aparecen.'],['v8.0–v8.2','Login preparado pero no activado (Code.gs + guía lista).'],['v8.1','Fotos en informes PDF arregladas (miniaturas Drive).'],['v7.9','Azul corporativo unificado en el PDF; sin hojas medio vacías; fotos más grandes.'],['v7.8','Membrete del PDF idéntico a la diapositiva corporativa.'],['v7.7','Fix: OC numérica rompía el PDF. Membrete Grupo Sole.'],['v7.6','PDF de Nacionales igual al Word de la jefa; impresión inmediata.']];
 HIST.forEach(function(x){h+='<div style="border-left:3px solid var(--accent);padding:6px 10px;margin:8px 0;background:var(--bg);border-radius:6px;"><b style="font-size:12.5px;">'+x[0]+'</b><p style="font-size:12px;line-height:1.55;margin:3px 0 0;">'+x[1]+'</p></div>';});
 h+='<button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="closeModal()">Cerrar</button>';
 openModal(h);}
